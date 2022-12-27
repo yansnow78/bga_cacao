@@ -662,13 +662,15 @@ function (dojo, declare) {
 			Complete actions, maybe without resolve all
 		*/
 		onCompleteActions: function(event) {
-			this.ajaxcall(
-				"/cacao/cacao/actionsCompleted.html", 
-				{ lock:true },
-				this,
-				function(result) {}, 
-				function(result) {}
-			);
+			this.confirmationDialog(_("Are you sure you don't want to activate remaining workers?"), () => {
+				this.ajaxcall(
+					"/cacao/cacao/actionsCompleted.html", 
+					{ lock:true },
+					this,
+					function(result) {}, 
+					function(result) {}
+				);
+			});
 		},
 		
 		/*
