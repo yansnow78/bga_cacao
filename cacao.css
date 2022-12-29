@@ -93,24 +93,32 @@
 	background-color: rgba(255,255,255,0.5);
 	background-origin: content-box
 }
-#zoomin  {
-	margin-top: 64px;
-}
-#zoomout  {
-	margin-top: 128px;
-}
 #zoomin{
 	background-position: 0 0;
 }
 #zoomout{
 	background-position: -32px 0;
 }
-@media (hover: none) {
+@media (hover: none) and (pointer: coarse) {
+	#zoomin  {
+		margin-top: 64px;
+	}
+	#zoomout  {
+		margin-top: 128px;
+	}
 	:is(#zoomin, #zoomout, #movetop, #moveleft, #moveright, #movedown)::after {
 		content:'';
 		position:absolute;
 		top:-16px; bottom:-16px; 
 		left:-16px; right:-16px; 
+	}
+}
+@media (hover: hover) and (pointer: fine) {
+	#zoomin  {
+		margin-top: 36px;
+	}
+	#zoomout  {
+		margin-top: 68px;
 	}
 }
 /*
