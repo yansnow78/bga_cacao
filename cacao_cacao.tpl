@@ -14,10 +14,8 @@
 	<a id="moveleft" href="#"></a>
 	<a id="moveright" href="#"></a>
 	<a id="movedown" href="#"></a>
-	<div class="map-zoom">
-		<a id="zoomin" class="in" href="#" title="Zoom in"></a>
-		<a id="zoomout" class="out" href="#" title="Zoom out"></a>
-	</div>
+	<a id="zoomin" href="#" title="Zoom in"></a>
+	<a id="zoomout" href="#" title="Zoom out"></a>
 </div>
 
 <div id="map_footer" class="whiteblock">

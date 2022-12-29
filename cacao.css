@@ -18,11 +18,16 @@
 /*
 	Scrollable area
 */
+/* body {
+    overscroll-behavior-y: contain;
+} */
 #map_container {
     position: relative;
     width: 100%;
     height: 600px;
     overflow: hidden;
+    touch-action:pinch-zoom;
+    /* overscroll-behavior-y: contain; */
 }
 #map_scrollable, #map_scrollable_oversurface {
     position: absolute;
@@ -76,25 +81,37 @@
 /*
 	Zoom
 */
-.map-zoom {
+#zoomin, #zoomout  {
+	display: block;
     position: absolute;
     top: 50%;
-	margin-top: 36px;
-}
-.map-zoom A {
-	display: block;
     width: 32px;
     height: 32px;
 	border-radius: 0 16px 16px 0;
 	background-image:url(img/zoom.png);
 	background-repeat: no-repeat;
 	background-color: rgba(255,255,255,0.5);
+	background-origin: content-box
 }
-.map-zoom A.in {
+#zoomin  {
+	margin-top: 64px;
+}
+#zoomout  {
+	margin-top: 128px;
+}
+#zoomin{
 	background-position: 0 0;
 }
-.map-zoom A.out {
+#zoomout{
 	background-position: -32px 0;
+}
+@media (hover: none) {
+	:is(#zoomin, #zoomout, #movetop, #moveleft, #moveright, #movedown)::after {
+		content:'';
+		position:absolute;
+		top:-16px; bottom:-16px; 
+		left:-16px; right:-16px; 
+	}
 }
 /*
 	Tiles

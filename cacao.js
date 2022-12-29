@@ -37,12 +37,8 @@ function (dojo, declare) {
 				Make map scrollable
 			*/
         	this.scrollmap.create( $('map_container'),$('map_scrollable'),$('map_surface'),$('map_scrollable_oversurface') );
-        	this.scrollmap.setupOnScreenArrows( 150 );
+        	this.scrollmap.setupOnScreenArrows( this.tile_size*this.zoom );
 			dojo.connect( $('enlargedisplay'), 'onclick', this, 'onIncreaseDisplayHeight' );
-			dojo.connect( $('movetop'), 'onclick', this, 'onMoveTop' );
-			dojo.connect( $('moveleft'), 'onclick', this, 'onMoveLeft' );
-			dojo.connect( $('moveright'), 'onclick', this, 'onMoveRight' );
-			dojo.connect( $('movedown'), 'onclick', this, 'onMoveDown' );
 			dojo.connect( $('zoomin'), 'onclick', this, 'onClickMapZoomIn');
             dojo.connect( $('zoomout'), 'onclick', this, 'onClickMapZoomOut');
 			this.setMapZoom(this.zoom);
@@ -440,22 +436,6 @@ function (dojo, declare) {
 		/*
 			Arrows to move the board
 		*/
-		onMoveTop : function(evt) {
-            evt.preventDefault();
-            this.scrollmap.scroll( 0, 200 );
-        },
-        onMoveLeft : function(evt) {
-            evt.preventDefault();
-            this.scrollmap.scroll( 200, 0 );
-        },
-        onMoveRight : function(evt) {
-            evt.preventDefault();
-            this.scrollmap.scroll( -200, 0 );
-        },
-        onMoveDown : function(evt) {
-            evt.preventDefault();
-            this.scrollmap.scroll( 0, -200 );
-        },
 		onClickMapZoomIn: function (evt) {
 			evt.preventDefault();
 			this.changeMapZoom(0.2);
@@ -478,6 +458,7 @@ function (dojo, declare) {
 					this.zoom = zoom;
 				}
 			}
+			this.scrollmap.scrollDelta = this.tile_size*this.zoom;
 			this.setScale('map_scrollable', this.zoom);
 			this.setScale('map_scrollable_oversurface', this.zoom);
 			this.setScale('jungle_display', this.zoom);
