@@ -9,24 +9,23 @@
  *
  * cacao.js
  */
-
 define([
     "dojo","dojo/_base/declare",
+    './modules/js/scrollmapWithZoom',
     "ebg/core/gamegui",
     "ebg/counter",
-    "ebg/scrollmap",
-    "ebg/zone"
+    "ebg/zone",
 ],
-function (dojo, declare) {
+function (dojo, declare, scrollmapWithZoom) {
     return declare("bgagame.cacao", ebg.core.gamegui, {
         constructor: function(){
 			
             this.tile_size = 120;
 			this.action_shift = 20;
-			this.zoom = 0.8;
 			
-			this.jungles_display = new ebg.zone();	
-        	this.scrollmap = new ebg.scrollmap(); // Scrollable area
+			this.jungles_display = new ebg.zone();
+        	this.scrollmap = new scrollmapWithZoom(); // Scrollable area
+			this.scrollmap.zoom = 0.8;
             this.clientStateArgs = {}; // Data during one state
 
 			this.evCache = [];
@@ -36,33 +35,16 @@ function (dojo, declare) {
         setup: function( gamedatas )
         {
 			/*
-				Make map scrollable
+				Create scrollmap
 			*/
-			this.scrollmap.container_div = $('map_container');
-			this.scrollmap.scrollable_div = $('map_scrollable');
-			this.scrollmap.surface_div = $('map_surface');
-			this.scrollmap.onsurface_div = $('map_scrollable_oversurface');
-			this.scrollmap.scrollto(0, 0)
-        	this.scrollmap.setupOnScreenArrows( this.tile_size*this.zoom );
+        	this.scrollmap.create( $('map_container'),$('map_scrollable'),$('map_surface'),$('map_scrollable_oversurface') );
+			/*
+				Make map draggable, scrollable and zoomable
+			*/
+        	this.scrollmap.bEnableZooming = true;
+        	this.scrollmap.setupOnScreenArrows( this.tile_size);
+        	this.scrollmap.setupOnScreenZoomButtons( 0.2 );
 			dojo.connect( $('enlargedisplay'), 'onclick', this, 'onIncreaseDisplayHeight' );
-			dojo.connect( $('zoomin'), 'onclick', this, 'onClickMapZoomIn');
-            dojo.connect( $('zoomout'), 'onclick', this, 'onClickMapZoomOut');
-			this.setMapZoom(this.zoom);
-            dojo.connect( $('map_container'), 'onwheel', this, 'onMouseWheel');
-            dojo.connect( $('map_container'), 'onpointerdown', this, 'onPointerDown');
-            dojo.connect( $('map_container'), 'onpointermove', this, 'onPointerMove');
-            dojo.connect( $('map_container'), 'onpointerup', this, 'onPointerUp');
-            dojo.connect( $('map_container'), 'onpointercancel', this, 'onPointerUp');
-            dojo.connect( $('map_container'), 'onpointerout', this, 'onPointerUp');
-            dojo.connect( $('map_container'), 'onpointerleave', this, 'onPointerUp');
-			// dojo.disconnect(this.scrollmap.onMouseDown);
-			// dojo.disconnect(this.scrollmap.onMouseUp);
-			// dojo.disconnect(this.scrollmap.onMouseMove);
-			dojo.disconnect(this.scrollmap.dragging_handler_touch);
-			$('map_surface').removeEventListener("ontouchstart", this.scrollmap.onMouseDown, true);
-			$('map_surface').removeEventListener("onmousedown", this.scrollmap.onMouseDown, true);
-			$("ebd-body").removeEventListener("ontouchend", this.scrollmap.onMouseUp, true);
-			$("ebd-body").removeEventListener("onmouseup", this.scrollmap.onMouseUp, true);
             /*
 				Setting up player boards
 			*/
@@ -335,7 +317,7 @@ function (dojo, declare) {
 				500,
 				delay
 			);
-			this.setScale("map_scrollable",this.zoom);
+			this.setScale("map_scrollable",this.scrollmap.zoom);
 		},
 		
 		/*
@@ -454,122 +436,9 @@ function (dojo, declare) {
             dojo.style( $('map_container'), 'height', ( cur_h+300 ) + 'px' );
         },
 		
-		/*
-			Arrows to move the board
-		*/
-		onClickMapZoomIn: function (evt) {
-			evt.preventDefault();
-			this.changeMapZoom(0.2);
-		},
-		onClickMapZoomOut: function (evt) {
-			evt.preventDefault();
-			this.changeMapZoom(-0.2);
-		},
-		changeMapZoom: function (diff) {
-			newZoom = this.zoom + diff;
-			this.setMapZoom(newZoom);
-		},
-		onMouseWheel: function(evt) {
-			evt.preventDefault();
-		    newZoom = this.zoom + evt.deltaY * -0.001;
-			this.setMapZoom(newZoom);
-		},
-		onPointerDown: function(ev) {
-			// The pointerdown event signals the start of a touch interaction.
-			// This event is cached to support 2-finger gestures
-			this.evCache.push(ev);
-			// log("pointerDown", ev);
-			if (this.evCache.length === 1) {
-				this.scrollmap.onMouseDown(ev);
-			} else {
-				dojo.disconnect(this.scrollmap.dragging_handler);
-				dojo.disconnect(this.scrollmap.dragging_handler_touch);
-			}
-		},
-		onPointerMove: function(ev) {
-			// This function implements a 2-pointer horizontal pinch/zoom gesture.
-			//
-			// If the distance between the two pointers has increased (zoom in),
-			// the target element's background is changed to "pink" and if the
-			// distance is decreasing (zoom out), the color is changed to "lightblue".
-			//
-			// This function sets the target element's border to "dashed" to visually
-			// indicate the pointer's target received a move event.
-			// log("pointerMove", ev);
-		  
-			// Find this event in the cache and update its record with this event
-			const index = this.evCache.findIndex((cachedEv) => cachedEv.pointerId === ev.pointerId);
-			this.evCache[index] = ev;
-		  
-			if (this.evCache.length === 1) {
-				this.scrollmap.onMouseMove(ev);
-			}
-			// If two pointers are down, check for pinch gestures
-			else if (this.evCache.length === 2) {
-			  // Calculate the distance between the two pointers
-			  const curDiff = Math.abs(this.evCache[0].clientX - this.evCache[1].clientX);
-		  
-			  if (this.prevDiff > 0) {
-				if (curDiff > this.prevDiff) {
-				   // The distance between the two pointers has increased
-				   //log("Pinch moving OUT -> Zoom in", ev);
-				   newZoom = this.zoom + 0.01;
-				   this.setMapZoom(newZoom);
-				}
-				if (curDiff < this.prevDiff) {
-				  // The distance between the two pointers has decreased
-				  //log("Pinch moving IN -> Zoom out",ev);
-				  newZoom = this.zoom - 0.01;
-				  this.setMapZoom(newZoom);
-				}
-			  }
-		  
-			  // Cache the distance for the next move event
-			  this.prevDiff = curDiff;
-			}
-		},
-		onPointerUp: function(ev) {
-			if (this.evCache.length === 1) {
-				this.scrollmap.onMouseUp(ev);
-			}
-			//log(ev.type, ev);
-			// Remove this pointer from the cache and reset the target's
-			// background and border
-			this.remove_event(ev);
-		  
-			// If the number of pointers down is less than two then reset diff tracker
-			if (this.evCache.length < 2) {
-				this.prevDiff = -1;
-			}
-		},
-		remove_event: function(ev) {
-			// Remove this event from the target's cache
-			for (var i = 0; i < this.evCache.length; i++) {
-			  if (this.evCache[i].pointerId == ev.pointerId) {
-				this.evCache.splice(i, 1);
-				break;
-			  }
-			}
-		},
-		setMapZoom: function (zoom) {
-			if (zoom <= 0.2) {
-				this.zoom = 0.2;
-			} else {
-				if (zoom >= 2) {
-					this.zoom = 2;
-				} else {
-					this.zoom = zoom;
-				}
-			}
-			this.scrollmap.scrollDelta = this.tile_size*this.zoom;
-			this.setScale('map_scrollable', this.zoom);
-			this.setScale('map_scrollable_oversurface', this.zoom);
-			this.setScale('jungle_display', this.zoom);
-		},
 		setScale: function ( elemId , scale ) {
 			dojo.style( $(elemId) , 'transform' , 'scale(' +scale + ')' );
 		},
-
         ///////////////////////////////////////////////////
         //// Player's action
 		
@@ -615,7 +484,7 @@ function (dojo, declare) {
 					dojo.connect( $(tile_id_to_switch) , "onclick" , this , "onWorkerTile" );
 				}));
 				animation_id.play();
-				this.setScale("map_scrollable_oversurface",this.zoom);
+				this.setScale("map_scrollable_oversurface",this.scrollmap.zoom);
 			}
         },
 		
@@ -644,7 +513,7 @@ function (dojo, declare) {
 				}
             }));
 			animation_id.play();
-			this.setScale("map_scrollable_oversurface",this.zoom);
+			this.setScale("map_scrollable_oversurface",this.scrollmap.zoom);
         },
 		
 		/*
@@ -839,7 +708,7 @@ function (dojo, declare) {
 				this.setScale("map_scrollable",1); // Avoid misplacement error
 				this.attachToNewParent( tile_id , "map_scrollable" );
 				this.slideToObjectPos( tile_id , "map_scrollable" , to_left , to_top ).play();
-				this.setScale("map_scrollable",this.zoom);
+				this.setScale("map_scrollable",this.scrollmap.zoom);
 				// this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y ); TODO
 			}
 			dojo.addClass(tile_id,"last");
@@ -883,7 +752,7 @@ function (dojo, declare) {
 					this.attachToNewParent( second_tile_id , "map_scrollable" );
 					this.jungles_display.removeFromZone( second_tile_id , false , "map_scrollable" );
 					this.slideToObjectPos( second_tile_id , "map_scrollable" , second_to_left , second_to_top ).play();
-					this.setScale("map_scrollable",this.zoom);
+					this.setScale("map_scrollable",this.scrollmap.zoom);
 					// Sometimes the tile is misplaced
 					setTimeout(function() {
 						dojo.attr(second_tile_id, 'style', "left: "+second_to_left+"px; top: "+second_to_top+"px;");
@@ -891,7 +760,7 @@ function (dojo, declare) {
 				}
             }));
 			animation_id.play();
-			this.setScale("map_scrollable",this.zoom);
+			this.setScale("map_scrollable",this.scrollmap.zoom);
 			// Sometimes the tile is misplaced
 			setTimeout(function() {
 				dojo.attr(first_tile_id, 'style', "left: "+first_to_left+"px; top: "+first_to_top+"px;");
