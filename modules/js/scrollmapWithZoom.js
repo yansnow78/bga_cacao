@@ -81,7 +81,8 @@ function (dojo, declare) {
                 this.isdragging = false;
             this.addPointer(ev);
 		},
-		onPointerMove: function(ev) {			
+		onPointerMove: function(ev) {	
+            ev.preventDefault();		
             this.addPointer(ev);
 
 			// If one pointer is move, drag the map
