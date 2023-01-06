@@ -434,6 +434,7 @@ function (dojo, declare, scrollmapWithZoom) {
 		onIncreaseDisplayHeight: function(evt) {
         	evt.preventDefault();
             var cur_h = toint( dojo.style( $('map_container'), 'height' ) );
+			this.scrollmap.board_y -= 150;
             dojo.style( $('map_container'), 'height', ( cur_h+300 ) + 'px' );
         },
 		/*
