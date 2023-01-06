@@ -42,6 +42,7 @@ function (dojo, declare, scrollmapWithZoom) {
 				Make map draggable, scrollable and zoomable
 			*/
         	this.scrollmap.bEnableZooming = true;
+            this.scrollmap.zoomChangeHandler = this.handleMapZoomChange;
         	this.scrollmap.setupOnScreenArrows( this.tile_size);
         	this.scrollmap.setupOnScreenZoomButtons( 0.2 );
 			dojo.connect( $('enlargedisplay'), 'onclick', this, 'onIncreaseDisplayHeight' );
@@ -435,8 +436,14 @@ function (dojo, declare, scrollmapWithZoom) {
             var cur_h = toint( dojo.style( $('map_container'), 'height' ) );
             dojo.style( $('map_container'), 'height', ( cur_h+300 ) + 'px' );
         },
-		
-		setScale: function ( elemId , scale ) {
+		/*
+			Scrollmap zoom
+		*/
+		handleMapZoomChange: function (zoom) {
+			this.setScale('jungle_display', zoom);
+		},
+
+		setScale: function( elemId , scale ) {
 			dojo.style( $(elemId) , 'transform' , 'scale(' +scale + ')' );
 		},
         ///////////////////////////////////////////////////

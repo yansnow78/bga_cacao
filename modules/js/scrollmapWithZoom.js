@@ -17,6 +17,7 @@ function (dojo, declare) {
             this.bEnableScrolling = true;
             this.zoomWheelDelta = 0.001;
             this.bEnableZooming = false;
+            this.zoomChangeHandler = null;
             this.bScrollDeltaAlignWithZoom = true;
             this.scrollDelta = false;
             this.pointers= [];
@@ -28,7 +29,7 @@ function (dojo, declare) {
             this.surface_div = surface_div;
             this.onsurface_div = onsurface_div;
             dojo.connect( this.surface_div, 'onpointerdown', this, 'onPointerDown');
-            dojo.connect( this.surface_div, 'onwheel', this, 'onWheel');
+            dojo.connect( this.container_div, 'onwheel', this, 'onWheel');
                                                      
             this.scrollto( 0, 0 );
 			this.setMapZoom(this.zoom);
@@ -70,8 +71,6 @@ function (dojo, declare) {
 		onPointerDown: function(ev) {
             if( !this.bEnableScrolling && !this.bEnableZooming )
                 return;
-			ev.preventDefault();
-            ev.stopPropagation();
             if (this.pointers.length == 0) {
                 this.onpointermove_handler = dojo.connect(document, "onpointermove", this, "onPointerMove");
                 this.onpointerup_handler = dojo.connect(document, "onpointerup", this, "onPointerUp");
@@ -82,8 +81,6 @@ function (dojo, declare) {
             this.addPointer(ev);
 		},
 		onPointerMove: function(ev) {			
-			ev.preventDefault();
-            ev.stopPropagation();
             this.addPointer(ev);
 
 			// If one pointer is move, drag the map
@@ -121,9 +118,7 @@ function (dojo, declare) {
 			}
 			dojo.stopEvent(ev);
 		},
-		onPointerUp: function(ev) {
-			ev.preventDefault();
-            
+		onPointerUp: function(ev) {            
             this.removePointer(ev);
 			// If no pointer left, stop drag or zoom the map
 			if (this.pointers.length === 0) {
@@ -137,7 +132,6 @@ function (dojo, declare) {
 			if (this.pointers.length < 2) {
 				this.prevDiff = -1;
 			}
-			dojo.stopEvent(ev);
 		},
 		onWheel: function(evt) {
             if( !this.bEnableZooming )
@@ -275,7 +269,8 @@ function (dojo, declare) {
                 this.scrollDeltaAlignWithZoom=this.scrollDelta;
 			this.setScale('map_scrollable', this.zoom);
 			this.setScale('map_scrollable_oversurface', this.zoom);
-			this.setScale('jungle_display', this.zoom);
+            if (this.zoomChangeHandler)
+                this.zoomChangeHandler(zoom);
 		},
     
 		setScale: function ( elemId , scale ) {
