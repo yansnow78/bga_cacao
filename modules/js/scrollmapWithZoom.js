@@ -15,6 +15,7 @@ function (dojo, declare) {
             this.board_y = 0;
 			this.zoom = 1;
             this.bEnableScrolling = true;
+            this.zoomPinchDelta = 0.005;
             this.zoomWheelDelta = 0.001;
             this.bEnableZooming = false;
             this.zoomChangeHandler = null;
@@ -47,7 +48,7 @@ function (dojo, declare) {
             return -1
         },
         addPointer: function(event) {
-            i = this.findEventIndex(event)
+            const i = this.findEventIndex(event)
             // Update if already present
             if (i > -1) {
                 this.pointers.splice(i, 1)
@@ -99,22 +100,21 @@ function (dojo, declare) {
 				this.isdragging = 0;
 
 				// Calculate the distance between the two pointers
-				const curDiff = Math.abs(this.pointers[0].clientX - this.pointers[1].clientX);
-		
-				if (this.prevDiff > 0) {
-					// console.log("pinch gesture");
-					if (curDiff > this.prevDiff) { // distance has increased
-					newZoom = this.zoom + 0.02;
-					this.setMapZoom(newZoom);
-					}
-					if (curDiff < this.prevDiff) {// distance has decreased
-					newZoom = this.zoom - 0.02;
-					this.setMapZoom(newZoom);
-					}
+                const event1 = this.pointers[0];
+                const event2 = this.pointers[1];
+				const curDist = Math.sqrt(
+                    Math.pow(Math.abs(event2.clientX - event1.clientX), 2) +
+                    Math.pow(Math.abs(event2.clientY - event1.clientY), 2)
+                );
+
+				if (this.prevDist > 0.0) {
+                    const diff = curDist-this.prevDist;
+					newZoom = this.zoom*(1 + this.zoomPinchDelta*diff);
+                    this.setMapZoom(newZoom);
 				}
 			
 				// Cache the distance for the next move event
-				this.prevDiff = curDiff;
+				this.prevDist = curDist;
 			}
 			dojo.stopEvent(ev);
 		},
@@ -130,7 +130,7 @@ function (dojo, declare) {
 
 			// If the number of pointers down is less than two then reset diff tracker
 			if (this.pointers.length < 2) {
-				this.prevDiff = -1;
+				this.prevDist = -1;
 			}
 		},
 		onWheel: function(evt) {
@@ -270,7 +270,7 @@ function (dojo, declare) {
 			this.setScale('map_scrollable', this.zoom);
 			this.setScale('map_scrollable_oversurface', this.zoom);
             if (this.zoomChangeHandler)
-                this.zoomChangeHandler(zoom);
+                this.zoomChangeHandler(this.zoom);
 		},
     
 		setScale: function ( elemId , scale ) {
