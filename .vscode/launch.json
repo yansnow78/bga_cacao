@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "chrome",
+            "name": "https://studio.boardgamearena.com/1/cacao?table=436084&testuser=2340434",
+            "request": "launch",
+            "url": "https://studio.boardgamearena.com/1/cacao?table=436084&testuser=2340434"
+        },
+        // {
+        //     "type": "chrome",
+        //     "request": "attach",
+        //     "name": "Attach to browser",
+        //     "port": 9222
+        //   }
+    ]
+}

@@ -10,21 +10,22 @@
  * cacao.js
  */
 define([
-	"dojo", "dojo/_base/declare",
+	"dojo", "dojo/_base/declare", 
 	'./modules/js/scrollmapWithZoom',
+	'./modules/js/core_patch',
 	"ebg/core/gamegui",
 	"ebg/counter",
 	"ebg/zone",
 ],
-	function (dojo, declare, scrollmapWithZoom) {
-		return declare("bgagame.cacao", ebg.core.gamegui, {
+	function (dojo, declare) {
+		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch] , {
 			constructor: function () {
 
 				this.tile_size = 120;
 				this.action_shift = 20;
 
 				this.jungles_display = new ebg.zone();
-				this.scrollmap = new scrollmapWithZoom(); // Scrollable area
+				this.scrollmap = new ebg.scrollmapWithZoom(); // Scrollable area
 				this.scrollmap.zoom = 0.8;
 				this.clientStateArgs = {}; // Data during one state
 
@@ -309,7 +310,7 @@ define([
 					from_zone = "counters_" + player_id;
 					to_zone = "jungle_" + card_id;
 				}
-				this.setScale("map_scrollable", 1);
+				//this.setScale("map_scrollable", 1);
 				this.slideTemporaryObject(
 					this.format_block("jstpl_material", { 'material': material }),
 					"map_scrollable",
@@ -318,7 +319,7 @@ define([
 					500,
 					delay
 				);
-				this.setScale("map_scrollable", this.scrollmap.zoom);
+				//this.setScale("map_scrollable", this.scrollmap.zoom);
 			},
 
 			/*
@@ -476,7 +477,7 @@ define([
 					// New tile to place...
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
-					this.setScale("map_scrollable_oversurface", 1);
+					//this.setScale("map_scrollable_oversurface", 1);
 					this.attachToNewParent(tile_id, "tiles_container");
 					this.slideToObject(tile_id, this.clientStateArgs.place_id).play();
 					// ... and previous tile back in the hand
@@ -494,7 +495,7 @@ define([
 						dojo.connect($(tile_id_to_switch), "onclick", this, "onWorkerTile");
 					}));
 					animation_id.play();
-					this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
+					//this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
 				}
 			},
 
@@ -507,7 +508,7 @@ define([
 				dojo.stopEvent(event);
 				this.clientStateArgs.place_id = place_id;
 				tile_id = this.clientStateArgs.worker_id;
-				this.setScale("map_scrollable_oversurface", 1);
+				//this.setScale("map_scrollable_oversurface", 1);
 				this.attachToNewParent(tile_id, "tiles_container");
 				var animation_id = this.slideToObject(tile_id, place_id);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
@@ -523,7 +524,7 @@ define([
 					}
 				}));
 				animation_id.play();
-				this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
+				//this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
 			},
 
 			/*
@@ -723,10 +724,10 @@ define([
 							}
 						),
 						"player_board_" + notif.args.player_id);
-					this.setScale("map_scrollable", 1); // Avoid misplacement error
+					//this.setScale("map_scrollable", 1); // Avoid misplacement error
 					this.attachToNewParent(tile_id, "map_scrollable");
 					this.slideToObjectPos(tile_id, "map_scrollable", to_left, to_top).play();
-					this.setScale("map_scrollable", this.scrollmap.zoom);
+					//this.setScale("map_scrollable", this.scrollmap.zoom);
 					// this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y ); TODO
 				}
 				dojo.addClass(tile_id, "last");
@@ -754,7 +755,7 @@ define([
 				first_tile_id = notifJungleAdded.args.tile_id;
 				first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
 				first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
-				this.setScale("map_scrollable", 1);
+				//this.setScale("map_scrollable", 1);
 				this.attachToNewParent(first_tile_id, "map_scrollable");
 				this.jungles_display.removeFromZone(first_tile_id, false, "map_scrollable");
 				var animation_id = this.slideToObjectPos(first_tile_id, "map_scrollable", first_to_left, first_to_top);
@@ -766,11 +767,11 @@ define([
 						second_tile_id = notifJungleAdded.args.tile_2_id;
 						second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
 						second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
-						this.setScale("map_scrollable", 1);
+						//this.setScale("map_scrollable", 1);
 						this.attachToNewParent(second_tile_id, "map_scrollable");
 						this.jungles_display.removeFromZone(second_tile_id, false, "map_scrollable");
 						this.slideToObjectPos(second_tile_id, "map_scrollable", second_to_left, second_to_top).play();
-						this.setScale("map_scrollable", this.scrollmap.zoom);
+						//this.setScale("map_scrollable", this.scrollmap.zoom);
 						// Sometimes the tile is misplaced
 						setTimeout(function () {
 							dojo.attr(second_tile_id, 'style', "left: " + second_to_left + "px; top: " + second_to_top + "px;");
@@ -778,7 +779,7 @@ define([
 					}
 				}));
 				animation_id.play();
-				this.setScale("map_scrollable", this.scrollmap.zoom);
+				//this.setScale("map_scrollable", this.scrollmap.zoom);
 				// Sometimes the tile is misplaced
 				setTimeout(function () {
 					dojo.attr(first_tile_id, 'style', "left: " + first_to_left + "px; top: " + first_to_top + "px;");
@@ -853,7 +854,6 @@ define([
 				this.dialogStats.setTitle(_("Statistics"));
 				this.dialogStats.setContent(notif.args.html);
 				this.dialogStats.show();
-			}
-
+			},
 		});
 	});

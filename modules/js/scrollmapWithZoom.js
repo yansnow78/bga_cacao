@@ -4,7 +4,7 @@ define([
     "dojo", "dojo/_base/declare"
 ],
     function (dojo, declare) {
-        return declare("scrollmapWithZoom", null, {
+        return declare("ebg.scrollmapWithZoom", null, {
             constructor: function () {
                 this.container_div = null;
                 this.scrollable_div = null;
