@@ -14,6 +14,7 @@ define([
                 this.board_x = 0;
                 this.board_y = 0;
                 this.zoom = 1;
+                this.prevZoom = 1;
                 this.bEnableScrolling = true;
                 this.zoomPinchDelta = 0.005;
                 this.zoomWheelDelta = 0.001;
@@ -22,6 +23,7 @@ define([
                 this.bScrollDeltaAlignWithZoom = true;
                 this.scrollDelta = false;
                 this.pointers = [];
+                this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
             create: function (container_div, scrollable_div, surface_div, onsurface_div) {
                 this.container_div = container_div;
@@ -33,10 +35,12 @@ define([
 
                 this.scrollto(0, 0);
                 this.setMapZoom(this.zoom);
+                this.resizeObserver.observe(this.container_div);
             },
-            /**
-             * Utilites for working with multiple pointer events
-             */
+            onResize: function (entries) {
+                this.scrollto(this.board_x,this.board_y, 0, 0);
+                //console.log("onResize");
+            },
             findEventIndex: function (event) {
                 let i = this.pointers.length
                 while (i--) {
@@ -126,6 +130,7 @@ define([
                     dojo.disconnect(this.onpointermove_handler);
                     dojo.disconnect(this.onpointerup_handler);
                     dojo.disconnect(this.onpointercancel_handler);
+                    //console.log(this.board_x+' '+this.board_y)
                 }
 
                 // If the number of pointers down is less than two then reset diff tracker
@@ -137,7 +142,12 @@ define([
                 if (!this.bEnableZooming)
                     return;
                 evt.preventDefault();
-                this.changeMapZoom(evt.deltaY * -this.zoomWheelDelta);
+                var width = dojo.style(this.container_div, "width");
+                var height = dojo.style(this.container_div, "height");
+                var containerRect=this.container_div.getBoundingClientRect();
+                var x=evt.clientX-containerRect.x-width/2;
+                var y=evt.clientY-containerRect.y-height/2;//this.container_div.offsetHeight
+                this.changeMapZoom(evt.deltaY * -this.zoomWheelDelta, x, y);
             },
 
             scroll: function (dx, dy, duration, delay) {
@@ -147,8 +157,8 @@ define([
                 if (typeof delay == 'undefined') {
                     delay = 0; // Default delay
                 }
-
-                this.scrollto(toint(this.board_x) + dx, toint(this.board_y) + dy, duration, delay);
+                //console.log(dx+' '+dy);
+                this.scrollto(this.board_x + dx, this.board_y + dy, duration, delay);
             },
 
             // Scroll the board to make it centered on given position
@@ -163,8 +173,8 @@ define([
                 var width = dojo.style(this.container_div, "width");
                 var height = dojo.style(this.container_div, "height");
 
-                var board_x = x + width / 2;
-                var board_y = y + height / 2;
+                var board_x = toint(x + width / 2);
+                var board_y = toint(y + height / 2);
 
                 this.board_x = x;
                 this.board_y = y;
@@ -254,21 +264,25 @@ define([
                 };
             },
 
-            changeMapZoom: function (diff) {
-                newZoom = this.zoom + diff;
-                this.setMapZoom(newZoom);
+            changeMapZoom: function (diff, x=0, y=0) {
+                var newZoom = this.zoom + diff;
+                this.setMapZoom(newZoom,x,y);
             },
 
-            setMapZoom: function (zoom) {
-                this.zoom = Math.min(Math.max(zoom, 0.2), 2)
+            setMapZoom: function (zoom, x=0, y=0) {
+                this.zoom = Math.min(Math.max(zoom, 0.2), 2);
                 if (this.bScrollDeltaAlignWithZoom)
                     this.scrollDeltaAlignWithZoom = this.scrollDelta * zoom;
                 else
                     this.scrollDeltaAlignWithZoom = this.scrollDelta;
-                this.setScale('map_scrollable', this.zoom);
-                this.setScale('map_scrollable_oversurface', this.zoom);
+                this.setScale(this.scrollable_div, this.zoom);
+                this.setScale(this.onsurface_div, this.zoom);
                 if (this.zoomChangeHandler)
                     this.zoomChangeHandler(this.zoom);
+                var zoomDelta = this.zoom/this.prevZoom;
+                //console.log(x+' '+ y+' '+ zoomDelta+' '+ this.zoom);
+                this.scrollto((this.board_x*zoomDelta) +x*(1-zoomDelta) , (this.board_y*zoomDelta)+y*(1-zoomDelta), 0, 0);
+                this.prevZoom = this.zoom;
             },
 
             setScale: function (elemId, scale) {

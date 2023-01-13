@@ -34,6 +34,7 @@
     position: absolute;
     top: 205px;
     left:  315px;
+	/* transform-origin: top left; */
 }
 #map_surface {
     position: absolute;
@@ -62,21 +63,25 @@
 #movetop {
     top: 0px;
     left: 50%;
+	margin-left: -16px;
     background-position: 0px 32px;
 }
 #moveleft {
     top: 50%;
+	margin-top: -16px;
     left: 0px;
     background-position: 32px 0px;
 }
 #moveright {
     top: 50%;
+	margin-top: -16px;
     right: 0px;
     background-position: 0px 0px;
 }
 #movedown {
     bottom: 0px;
     left: 50%;
+	margin-left: -16px;
     background-position: 32px 32px;
 }
 /*
@@ -102,10 +107,10 @@
 }
 @media (hover: none) and (pointer: coarse) {
 	#zoomin  {
-		margin-top: 64px;
+		margin-top: 48px;
 	}
 	#zoomout  {
-		margin-top: 128px;
+		margin-top: 102px;
 	}
 	:is(#zoomin, #zoomout, #movetop, #moveleft, #moveright, #movedown)::after {
 		content:'';
@@ -116,10 +121,10 @@
 }
 @media (hover: hover) and (pointer: fine) {
 	#zoomin  {
-		margin-top: 36px;
+		margin-top: 20px;
 	}
 	#zoomout  {
-		margin-top: 68px;
+		margin-top: 52px;
 	}
 }
 /*
