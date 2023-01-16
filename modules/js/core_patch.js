@@ -32,15 +32,17 @@ define([
                     duration = Math.min(1, duration);
                 }
 
-                var scale = target_obj.getBoundingClientRect().width / target_obj.offsetWidth;
+                var scale = mobile_obj.getBoundingClientRect().width / mobile_obj.offsetWidth;
                 var vector = {
-                    x: (tgt.x - src.x) / scale,
-                    y: (tgt.y - src.y) / scale
+                    x: (tgt.x - src.x + (tgt.w-src.w)/2) / scale,
+                    y: (tgt.y - src.y + (tgt.h-src.h)/2) / scale
                 };
 
-                var left = dojo.style(target_obj, 'left');
-                var top = dojo.style(target_obj, 'top');
+                var left = dojo.style(mobile_obj, 'left');
+                var top = dojo.style(mobile_obj, 'top');
 
+                left = left + vector.x;
+                top = top + vector.y;
                 //            console.log( 'src: left='+toint( src.x )+', top='+toint( src.y ) +"\n"+
                 //                   'target: left='+toint( tgt.x )+', top='+toint( tgt.y ) +"\n"+
                 //                   'result: left='+toint( left )+', top='+toint( top ) );
@@ -50,8 +52,8 @@ define([
 
                 var anim = dojo.fx.slideTo({
                     node: mobile_obj,
-                    top: top,
-                    left: left,
+                    top: toint(top),
+                    left: toint(left),
                     delay: delay,
                     duration: duration,
                     unit: "px"
@@ -87,19 +89,27 @@ define([
                     duration = Math.min(1, duration);
                 }
 
-                var scale = target_obj.getBoundingClientRect().width / target_obj.offsetWidth;
+                var scale = mobile_obj.getBoundingClientRect().width / mobile_obj.offsetWidth;
+                console.log(scale);
                 var vector = {
-                    x: (tgt.x - src.x + toint(target_x)) / scale,
-                    y: (tgt.y - src.y + toint(target_y)) / scale
+                    x: (tgt.x - src.x) / scale + toint(target_x),
+                    y: (tgt.y - src.y) / scale + toint(target_y) 
                 };
 
                 this.enable3dIfNeeded(disabled3d);
 
+                var left = dojo.style( mobile_obj, 'left' );
+                var top = dojo.style( mobile_obj, 'top' );
+                left = left + vector.x;
+                top = top + vector.y;
+                // left = target_x;
+                // top = target_y;
+
                 // Move to new location and fade in
                 var anim = dojo.fx.slideTo({
                     node: mobile_obj,
-                    top: toint(target_y),
-                    left: toint(target_x),
+                    top: toint(top),
+                    left: toint(left),
                     delay: delay,
                     duration: duration,
                     easing: dojo.fx.easing.cubicInOut,
@@ -138,8 +148,8 @@ define([
                 var top = dojo.style(my_new_mobile, 'top');
 
                 var vector = {
-                    x: tgt.x - src.x /* + (tgt.w-src.w)/2 */,
-                    y: tgt.y - src.y/*  + (tgt.h-src.h)/2 */
+                    x: tgt.x - src.x + (tgt.w-src.w)/2,
+                    y: tgt.y - src.y + (tgt.h-src.h)/2
                 };
 
                 var scale = my_new_mobile.getBoundingClientRect().width / my_new_mobile.offsetWidth;
