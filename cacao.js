@@ -29,8 +29,6 @@ define([
 				this.scrollmap.zoom = 0.8;
 				this.clientStateArgs = {}; // Data during one state
 
-				this.evCache = [];
-				this.prevDiff = -1;
 			},
 
 			setup: function (gamedatas) {
@@ -98,6 +96,8 @@ define([
 						dojo.addClass(placedTileId, "last");
 					}
 				}
+				this.scrollmap.scrollToCenter();
+
 				/*
 					Show two jungle tiles in the display
 				*/
