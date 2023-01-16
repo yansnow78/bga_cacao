@@ -38,7 +38,7 @@ define([
                 this.resizeObserver.observe(this.container_div);
             },
             onResize: function (entries) {
-                this.scrollto(this.board_x,this.board_y, 0, 0);
+                this.scrollto(this.board_x, this.board_y, 0, 0);
                 //console.log("onResize");
             },
             _findPointerIndex: function (event) {
@@ -54,9 +54,9 @@ define([
                 const i = this._findPointerIndex(event)
                 // Update if already present
                 if (i > -1) {
-                    const prevEv=this._pointers[i];
+                    const prevEv = this._pointers[i];
                     this._pointers.splice(i, 1, event);
-                    return prevEv; 
+                    return prevEv;
                 } else
                     this._pointers.push(event)
             },
@@ -75,16 +75,16 @@ define([
             _getXYCoord: function (ev, ev2) {
                 const width = dojo.style(this.container_div, "width");
                 const height = dojo.style(this.container_div, "height");
-                const containerRect=this.container_div.getBoundingClientRect();
-                var clientX=ev.clientX;
-                var clientY=ev.clientY;
-                if (typeof ev2 !== 'undefined'){
-                    clientX=(clientX+ev2.clientX)/2;
-                    clientY=(clientY+ev2.clientY)/2;
+                const containerRect = this.container_div.getBoundingClientRect();
+                var clientX = ev.clientX;
+                var clientY = ev.clientY;
+                if (typeof ev2 !== 'undefined') {
+                    clientX = (clientX + ev2.clientX) / 2;
+                    clientY = (clientY + ev2.clientY) / 2;
                 }
 
-                const x=clientX-containerRect.x-width/2;
-                const y=clientY-containerRect.y-height/2;
+                const x = clientX - containerRect.x - width / 2;
+                const y = clientY - containerRect.y - height / 2;
                 return [x, y];
             },
             onPointerDown: function (ev) {
@@ -94,21 +94,21 @@ define([
                     this.onpointermove_handler = dojo.connect(document, "onpointermove", this, "onPointerMove");
                     this.onpointerup_handler = dojo.connect(document, "onpointerup", this, "onPointerUp");
                     this.onpointercancel_handler = dojo.connect(document, "onpointercancel", this, "onPointerUp");
-                } 
+                }
                 this._addPointer(ev);
             },
             onPointerMove: function (ev) {
                 ev.preventDefault();
-                const prevEv =  this._addPointer(ev);
+                const prevEv = this._addPointer(ev);
 
                 // If one pointer is move, drag the map
                 if (this._pointers.length === 1) {
                     if (!this.bEnableScrolling)
                         return;
                     if ((typeof prevEv !== 'undefined')) {
-                        const [x,y] = this._getXYCoord(ev);
-                        const [xPrev,yPrev] = this._getXYCoord(prevEv);
-                        this.scroll(x  - xPrev , y - yPrev, 0, 0)
+                        const [x, y] = this._getXYCoord(ev);
+                        const [xPrev, yPrev] = this._getXYCoord(prevEv);
+                        this.scroll(x - xPrev, y - yPrev, 0, 0)
                     }
                 }
                 // If two _pointers are move, check for pinch gestures
@@ -123,13 +123,13 @@ define([
                         Math.pow(Math.abs(ev2.clientX - ev1.clientX), 2) +
                         Math.pow(Math.abs(ev2.clientY - ev1.clientY), 2)
                     );
-                    const [x,y] = this._getXYCoord(ev1, ev2);
+                    const [x, y] = this._getXYCoord(ev1, ev2);
                     if (this._prevDist > 0.0) {
                         const diff = curDist - this._prevDist;
                         // newZoom = this.zoom * (1 + this.zoomPinchDelta * diff);
                         const newZoom = this.zoom * (curDist / this._prevDist);
                         this.setMapZoom(newZoom, x, y);
-                        this.scroll(x  - this._xPrev , y - this._yPrev, 0, 0)
+                        this.scroll(x - this._xPrev, y - this._yPrev, 0, 0)
                     }
 
                     // Cache the distance for the next move event
@@ -157,7 +157,7 @@ define([
                 if (!this.bEnableZooming)
                     return;
                 evt.preventDefault();
-                const [x,y]=this._getXYCoord(evt);
+                const [x, y] = this._getXYCoord(evt);
                 this.changeMapZoom(evt.deltaY * -this.zoomWheelDelta, x, y);
             },
 
@@ -258,12 +258,12 @@ define([
                 };
             },
 
-            changeMapZoom: function (diff, x=0, y=0) {
+            changeMapZoom: function (diff, x = 0, y = 0) {
                 const newZoom = this.zoom + diff;
-                this.setMapZoom(newZoom,x,y);
+                this.setMapZoom(newZoom, x, y);
             },
 
-            setMapZoom: function (zoom, x=0, y=0) {
+            setMapZoom: function (zoom, x = 0, y = 0) {
                 this.zoom = Math.min(Math.max(zoom, 0.2), 2);
                 if (this.bScrollDeltaAlignWithZoom)
                     this._scrollDeltaAlignWithZoom = this.scrollDelta * zoom;
@@ -273,9 +273,9 @@ define([
                 this.setScale(this.onsurface_div, this.zoom);
                 if (this.zoomChangeHandler)
                     this.zoomChangeHandler(this.zoom);
-                const zoomDelta = this.zoom/this._prevZoom;
+                const zoomDelta = this.zoom / this._prevZoom;
                 //console.log(x+' '+ y+' '+ zoomDelta+' '+ this.zoom);
-                this.scrollto((this.board_x*zoomDelta) +x*(1-zoomDelta) , (this.board_y*zoomDelta)+y*(1-zoomDelta), 0, 0);
+                this.scrollto((this.board_x * zoomDelta) + x * (1 - zoomDelta), (this.board_y * zoomDelta) + y * (1 - zoomDelta), 0, 0);
                 this._prevZoom = this.zoom;
             },
 
@@ -287,7 +287,7 @@ define([
             //// Scroll with buttons
 
             // Optional: setup on screen arrows to scroll the board
-            setupOnScreenArrows: function (scrollDelta, bScrollDeltaAlignWithZoom=true) {
+            setupOnScreenArrows: function (scrollDelta, bScrollDeltaAlignWithZoom = true) {
                 this.scrollDelta = scrollDelta;
                 this.bScrollDeltaAlignWithZoom = bScrollDeltaAlignWithZoom;
                 if (this.bScrollDeltaAlignWithZoom)
