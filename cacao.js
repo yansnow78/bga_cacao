@@ -323,10 +323,10 @@ define([
 				//this.setScale("map_scrollable", 1);
 				this.slideTemporaryObject(
 					this.format_block("jstpl_material", { 'material': material }),
-					"map_scrollable",
+					"counters_" + player_id,
 					from_zone,
 					to_zone,
-					500,
+					1000,
 					delay
 				);
 				//this.setScale("map_scrollable", this.scrollmap.zoom);
@@ -519,9 +519,9 @@ define([
 				this.clientStateArgs.place_id = place_id;
 				tile_id = this.clientStateArgs.worker_id;
 				//this.setScale("map_scrollable_oversurface", 1);
-				this.attachToNewParent(tile_id, "tiles_container");
 				var animation_id = this.slideToObject(tile_id, place_id);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
+					this.attachToNewParent(tile_id, "tiles_container");
 					if (this.gamedatas.gamestate.name != "client_selectWorkerRotate") {
 						// A worker tile is placed on the board for the first time in this player tour
 						this.setClientState("client_selectWorkerRotate", {
