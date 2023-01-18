@@ -37,39 +37,39 @@ define([
                 this.setMapZoom(this.zoom);
                 this.resizeObserver.observe(this.container_div);
             },
-            onResize: function (entries) {
+            onResize: function () {
                 this.scrollto(this.board_x, this.board_y, 0, 0);
                 //console.log("onResize");
             },
             _findPointerIndex: function (event) {
-                let i = this._pointers.length
+                var i = this._pointers.length;
                 while (i--) {
                     if (this._pointers[i].pointerId === event.pointerId) {
-                        return i
+                        return i;
                     }
                 }
-                return -1
+                return -1;
             },
             _addPointer: function (event) {
-                const i = this._findPointerIndex(event)
+                const i = this._findPointerIndex(event);
                 // Update if already present
                 if (i > -1) {
                     const prevEv = this._pointers[i];
                     this._pointers.splice(i, 1, event);
                     return prevEv;
                 } else
-                    this._pointers.push(event)
+                    this._pointers.push(event);
             },
             _removePointer: function (event) {
-                const i = this._findPointerIndex(event)
+                const i = this._findPointerIndex(event);
                 if (i > -1) {
-                    this._pointers.splice(i, 1)
+                    this._pointers.splice(i, 1);
                 }
             },
             _getPointerPrevEvent: function (event) {
-                const i = this._findPointerIndex(event)
+                const i = this._findPointerIndex(event);
                 if (i > -1) {
-                    return this._pointers[i]
+                    return this._pointers[i];
                 }
             },
             _getXYCoord: function (ev, ev2) {
@@ -108,7 +108,7 @@ define([
                     if ((typeof prevEv !== 'undefined')) {
                         const [x, y] = this._getXYCoord(ev);
                         const [xPrev, yPrev] = this._getXYCoord(prevEv);
-                        this.scroll(x - xPrev, y - yPrev, 0, 0)
+                        this.scroll(x - xPrev, y - yPrev, 0, 0);
                     }
                 }
                 // If two _pointers are move, check for pinch gestures
@@ -125,11 +125,11 @@ define([
                     );
                     const [x, y] = this._getXYCoord(ev1, ev2);
                     if (this._prevDist > 0.0) {
-                        const diff = curDist - this._prevDist;
+                        // const diff = curDist - this._prevDist;
                         // newZoom = this.zoom * (1 + this.zoomPinchDelta * diff);
                         const newZoom = this.zoom * (curDist / this._prevDist);
                         this.setMapZoom(newZoom, x, y);
-                        this.scroll(x - this._xPrev, y - this._yPrev, 0, 0)
+                        this.scroll(x - this._xPrev, y - this._yPrev, 0, 0);
                     }
 
                     // Cache the distance for the next move event

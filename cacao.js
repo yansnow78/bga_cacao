@@ -53,12 +53,12 @@ define([
 				*/
 				for (var player_id in gamedatas.players) {
 					var player = gamedatas.players[player_id];
-					player_color_class = this.getColorClass(player.color);
+					var player_color_class = this.getColorClass(player.color);
 					dojo.place(this.format_block("jstpl_player_board", { 'playerId': player_id, 'color': player_color_class }), $("player_board_" + player_id));
 					this.showPlayerScore(player_id, player.gold, player.cacao, player.sun, player.water, true);
-					counter_tile_id = "counter_tiles_" + player_id;
+					var counter_tile_id = "counter_tiles_" + player_id;
 					if (player_id == this.player_id) {
-						current_player_color = player.color;
+						var current_player_color = player.color;
 						// Add tooltips
 						this.addTooltip(counter_tile_id, _('Number of tiles in your worker draw pile.'), '');
 						this.addTooltip("counter_cacao_" + player_id, _("Your cacao's reserve (maximum 5)."), '');
@@ -67,13 +67,14 @@ define([
 						this.addTooltip("hand_tiles_" + player_id, _("Your hand of worker tiles."), '');
 					} else {
 						var cntTilesInHand = toint(gamedatas.playerHands[player_id]);
-						for (count = 1; count <= cntTilesInHand; count++) {
+						for (var count = 1; count <= cntTilesInHand; count++) {
 							dojo.place('<div class="tile-back back-' + player_color_class + '"></div>', $("hand_tiles_" + player_id));
 						}
+						var cntWorkersDeck;
 						if (typeof gamedatas.count_deck_workers['deck_' + player_id] === "undefined") {
-							var cntWorkersDeck = 0;
+							cntWorkersDeck = 0;
 						} else {
-							var cntWorkersDeck = gamedatas.count_deck_workers['deck_' + player_id];
+							cntWorkersDeck = gamedatas.count_deck_workers['deck_' + player_id];
 						}
 						dojo.place("<span>" + cntWorkersDeck + "</span>", "counter_tiles_" + player_id, "only");
 					}
@@ -82,15 +83,15 @@ define([
 					Worker tiles in the hand
 				*/
 				for (var i in gamedatas.workerHand) {
-					worker_tile = gamedatas.workerHand[i];
+					var worker_tile = gamedatas.workerHand[i];
 					this.addWorkerInTheHand(this.player_id, current_player_color, worker_tile.type, worker_tile.id, gamedatas.counterDeck);
 				}
 				/*
 					Place tiles on board
 				*/
-				for (var i in gamedatas.board) {
+				for (i in gamedatas.board) {
 					var tile = gamedatas.board[i];
-					placedTileId = this.addTileOnBoard(tile.x, tile.y, tile.tile, tile.card_id, tile.rotation, tile.player_color, tile.overbuilded);
+					var placedTileId = this.addTileOnBoard(tile.x, tile.y, tile.tile, tile.card_id, tile.rotation, tile.player_color, tile.overbuilded);
 					if (placedTileId.substring(0, 6) == "worker" && tile.card_id == gamedatas.last_workers_card_id) {
 						// Last workers tile placed
 						dojo.addClass(placedTileId, "last");
@@ -110,7 +111,7 @@ define([
 					}
 					dojo.place("<span>" + gamedatas.cnt_deck_jungles + "</span>", 'counter_jungles', "only");
 				} else {
-					for (var i in gamedatas.next_jungle) {
+					for (i in gamedatas.next_jungle) {
 						var jungle_tile = gamedatas.next_jungle[i];
 						this.fillJungleDisplay(jungle_tile.type, jungle_tile.id, jungle_tile.description, gamedatas.cnt_deck_jungles);
 					}
@@ -220,7 +221,7 @@ define([
 				Add a jungle tile on the display zone
 			*/
 			fillJungleDisplay: function (type, card_id, description, cnt_deck_jungles) {
-				tile_id = "jungle_" + card_id;
+				var tile_id = "jungle_" + card_id;
 				dojo.place(
 					this.format_block(
 						"jstpl_jungle",
@@ -251,8 +252,8 @@ define([
 				Add a worker tile in the hand of a player
 			*/
 			addWorkerInTheHand: function (player_id, color, tile_type, card_id, nb_tiles) {
-				tile_id = tile_type + "_" + card_id;
-				color_class = this.getColorClass(color);
+				var tile_id = tile_type + "_" + card_id;
+				var color_class = this.getColorClass(color);
 				var node_tile = dojo.place(
 					this.format_block(
 						"jstpl_worker",
@@ -313,6 +314,7 @@ define([
 				Show material moving between board and player
 			*/
 			moveMaterial: function (player_id, card_id, material, direction, delay) {
+				var from_zone, to_zone;
 				if (direction == "get") {
 					from_zone = "jungle_" + card_id;
 					to_zone = "counters_" + player_id;
@@ -337,9 +339,9 @@ define([
 			*/
 			updatePlacesForTiles: function (places) {
 				for (var i in places) {
-					place = places[i];
-					x = place[0];
-					y = place[1];
+					var place = places[i];
+					var x = place[0];
+					var y = place[1];
 					if (!$("place_" + x + "x" + y)) {
 						var tpl = {};
 						tpl.x = x;
@@ -355,10 +357,10 @@ define([
 				Place a tile on the board
 			*/
 			addTileOnBoard: function (x, y, tile_type, card_id, rotation, color, overbuilded) {
-				to_left = this.tile_size * x;
-				to_top = this.tile_size * y;
+				var to_left = this.tile_size * x;
+				var to_top = this.tile_size * y;
 				if (rotation == null || rotation == "") {
-					tile_id = "jungle_" + card_id;
+					var tile_id = "jungle_" + card_id;
 					dojo.place(
 						this.format_block(
 							"jstpl_jungle_xy",
@@ -402,9 +404,9 @@ define([
 			*/
 			showActionPointers: function (tiles) {
 				for (var i in tiles) {
-					tile = tiles[i];
-					x = toint(tile['x']);
-					y = toint(tile['y']);
+					var tile = tiles[i];
+					var x = toint(tile['x']);
+					var y = toint(tile['y']);
 					var tpl = {};
 					tpl.top = y * this.tile_size;
 					tpl.left = x * this.tile_size;
@@ -426,15 +428,16 @@ define([
 					tpl.edge = tile['edge'];
 					tpl.workers = tile['workers'];
 					dojo.place(this.format_block("jstpl_action", tpl), "places_container");
-					for (occurs = 1; occurs <= tile['workers']; occurs++) {
-						link_id = tpl.action_id + "_" + occurs;
-						node_tile = dojo.place(this.format_block("jstpl_action_link", { 'action_id': tpl.action_id, 'link_id': link_id, 'occurs': occurs }), "action_" + tpl.action_id);
+					for (var occurs = 1; occurs <= tile['workers']; occurs++) {
+						var link_id = tpl.action_id + "_" + occurs;
+						var node_tile = dojo.place(this.format_block("jstpl_action_link", { 'action_id': tpl.action_id, 'link_id': link_id, 'occurs': occurs }), "action_" + tpl.action_id);
 						dojo.query(node_tile).connect("onclick", this, "onActivatedTile");
+						var activateTooltip;
 						if (tile['gain'] == "cacao") {
-							total = occurs * tile['value'];
-							var activateTooltip = dojo.string.substitute(_("Get ${times} cacao fruit(s)."), { times: total });
+							var total = occurs * tile['value'];
+							activateTooltip = dojo.string.substitute(_("Get ${times} cacao fruit(s)."), { times: total });
 						} else {
-							var activateTooltip = dojo.string.substitute(_("Sell ${times} cacao fruit(s)."), { times: occurs });
+							activateTooltip = dojo.string.substitute(_("Sell ${times} cacao fruit(s)."), { times: occurs });
 						}
 						this.addTooltip("action_" + link_id, activateTooltip, '');
 					}
@@ -483,7 +486,7 @@ define([
 					});
 				} else {
 					// Tile already on board : switch tiles
-					tile_id_to_switch = this.clientStateArgs.worker_id;
+					var tile_id_to_switch = this.clientStateArgs.worker_id;
 					// New tile to place...
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
@@ -491,7 +494,7 @@ define([
 					this.attachToNewParent(tile_id, "tiles_container");
 					this.slideToObject(tile_id, this.clientStateArgs.place_id).play();
 					// ... and previous tile back in the hand
-					hand_tiles = "hand_tiles_" + this.player_id;
+					var hand_tiles = "hand_tiles_" + this.player_id;
 					this.attachToNewParent(tile_id_to_switch, hand_tiles);
 					dojo.removeClass(tile_id_to_switch, "selected");
 					this.rotateTo(tile_id_to_switch, 0);
@@ -517,7 +520,7 @@ define([
 				var place_id = event.currentTarget.id;
 				dojo.stopEvent(event);
 				this.clientStateArgs.place_id = place_id;
-				tile_id = this.clientStateArgs.worker_id;
+				var tile_id = this.clientStateArgs.worker_id;
 				//this.setScale("map_scrollable_oversurface", 1);
 				this.attachToNewParent(tile_id, "tiles_container");
 				var animation_id = this.slideToObject(tile_id, place_id);
@@ -555,8 +558,8 @@ define([
 			*/
 			onConfirmWorker: function () {
 				dojo.destroy("rotate_click");
-				tile_id = this.clientStateArgs.worker_id;
-				tile_rotation = this.clientStateArgs.rotation;
+				var tile_id = this.clientStateArgs.worker_id;
+				var tile_rotation = this.clientStateArgs.rotation;
 				var position = this.clientStateArgs.place_id.substring(6);
 				var coord = position.split("x");
 				this.ajaxcall(
@@ -599,7 +602,7 @@ define([
 				if (!this.checkAction('placeJungle')) return;
 				var place_id = event.currentTarget.id;
 				dojo.stopEvent(event);
-				tile_id = this.clientStateArgs.jungle_id;
+				var tile_id = this.clientStateArgs.jungle_id;
 				var position = place_id.substring(6);
 				var coord = position.split("x");
 				this.ajaxcall(
@@ -694,9 +697,9 @@ define([
 				dojo.query(".last").removeClass("last");
 				dojo.query(".place").forEach(dojo.destroy);
 				dojo.query(".hand-tiles").removeClass("active");
-				tile_id = notif.args.tile_type + "_" + notif.args.card_id;
-				to_left = this.tile_size * notif.args.tile_x;
-				to_top = this.tile_size * notif.args.tile_y;
+				var tile_id = notif.args.tile_type + "_" + notif.args.card_id;
+				var to_left = this.tile_size * notif.args.tile_x;
+				var to_top = this.tile_size * notif.args.tile_y;
 				if (notif.args.overbuild == "1") {
 					to_left -= 2;
 					to_top -= 2;
@@ -749,11 +752,11 @@ define([
 			},
 
 			notif_newPlayerScores: function (notif) {
-				active_player_id = notif.args.player_id;
+				var active_player_id = notif.args.player_id;
 				this.showPlayerScore(active_player_id, notif.args.gold, notif.args.cacao, notif.args.sun, notif.args.water);
-				delay = 0;
+				var delay = 0;
 				for (var i in notif.args.movements) {
-					movement = notif.args.movements[i];
+					var movement = notif.args.movements[i];
 					this.moveMaterial(movement.player_id, movement.card_id, movement.material, movement.direction, delay);
 					delay += 250;
 				}
@@ -762,9 +765,9 @@ define([
 			notif_jungleAdded: function (notifJungleAdded) {
 				dojo.removeClass(notifJungleAdded.args.tile_id, "selected");
 				dojo.removeClass("jungle_display", "active");
-				first_tile_id = notifJungleAdded.args.tile_id;
-				first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
-				first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
+				var first_tile_id = notifJungleAdded.args.tile_id;
+				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
+				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
 				//this.setScale("map_scrollable", 1);
 				this.attachToNewParent(first_tile_id, "map_scrollable");
 				this.jungles_display.removeFromZone(first_tile_id, false, "map_scrollable");
@@ -774,9 +777,9 @@ define([
 					dojo.query("#places_container .place").forEach(dojo.destroy);
 					if (notifJungleAdded.args.tile_2_id != null) {
 						// Second jungle tile automatically placed
-						second_tile_id = notifJungleAdded.args.tile_2_id;
-						second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
-						second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
+						var second_tile_id = notifJungleAdded.args.tile_2_id;
+						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
+						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
 						//this.setScale("map_scrollable", 1);
 						this.attachToNewParent(second_tile_id, "map_scrollable");
 						this.jungles_display.removeFromZone(second_tile_id, false, "map_scrollable");
@@ -845,14 +848,14 @@ define([
 			},
 
 			notif_scoreTemple: function (notif) {
-				jungleTileId = "jungle_" + notif.args.card_id;
+				var jungleTileId = "jungle_" + notif.args.card_id;
 				dojo.removeClass(jungleTileId, "tile_jungle");
 				dojo.addClass(jungleTileId, "tile_back");
 				dojo.place("<span>" + notif.args.temple_nr + "</span>", jungleTileId, "only");
 				this.scoreCtrl[notif.args.player_id].incValue(notif.args.gold);
-				delay = 0;
+				var delay = 0;
 				for (var i in notif.args.movements) {
-					movement = notif.args.movements[i];
+					var movement = notif.args.movements[i];
 					this.moveMaterial(movement.player_id, movement.card_id, movement.material, movement.direction, delay);
 					delay += 250;
 				}

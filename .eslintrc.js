@@ -14,6 +14,7 @@ module.exports = {
     },
     "rules": {
         "semi": [2, "always"],
+        "no-unused-vars": ["error", { "vars": "all", "args": "none", "ignoreRestSiblings": false }]
     },
     "globals": {
         "ebg": "writable",
