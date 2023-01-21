@@ -20,7 +20,7 @@ define([
 	function (dojo, declare) {
 		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch] , {
 			constructor: function () {
-
+				this.anim_duration = 1000;
 				this.tile_size = 120;
 				this.action_shift = 20;
 
@@ -39,8 +39,9 @@ define([
 				/*
 					Create scrollmap
 				*/
+				dojo.place(this.format_block("jstpl_map_scrollable_anim", {}), document.body);
 				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
-				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'), $('map_scrollable_oversurface'));
+				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'), $('map_scrollable_oversurface'), $('map_scrollable_anim'));
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
@@ -314,21 +315,34 @@ define([
 				Show material moving between board and player
 			*/
 			moveMaterial: function (player_id, card_id, material, direction, delay) {
-				var from_zone, to_zone;
+				var from_zone, to_zone, material_parent;
 				if (direction == "get") {
+					if (material == "gold") {
+						// material_parent = "counters_" + player_id;
+						to_zone = $("player_score_" + player_id);
+						material_parent = to_zone.parentNode;
+					} else {
+						material_parent = "counter_" + material + "_" + player_id;
+						to_zone = material_parent;
+					}
 					from_zone = "jungle_" + card_id;
-					to_zone = "counters_" + player_id;
+					console.log(material_parent, from_zone, to_zone);
 				} else {
-					from_zone = "counters_" + player_id;
+					material_parent = "map_scrollable_anim";
+					if (material == "gold")
+						from_zone = "player_score_" + player_id;
+					else
+						from_zone = "counter_" + material + "_" + player_id;
 					to_zone = "jungle_" + card_id;
+					console.log(material_parent, from_zone, to_zone);
 				}
 				//this.setScale("map_scrollable", 1);
 				this.slideTemporaryObject(
 					this.format_block("jstpl_material", { 'material': material }),
-					"map_scrollable",
+					material_parent,
 					from_zone,
 					to_zone,
-					500,
+					this.anim_duration,
 					delay
 				);
 				//this.setScale("map_scrollable", this.scrollmap.zoom);
@@ -471,6 +485,7 @@ define([
 			*/
 			onWorkerTile: function (event) {
 				dojo.stopEvent(event);
+				// this.scrollmap.scroll(0, 0, 0);
 				if (!this.checkAction('selectWorker')) return;
 				var tile_id = event.currentTarget.id;
 				if (this.clientStateArgs.place_id == null) {
@@ -491,15 +506,19 @@ define([
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
 					//this.setScale("map_scrollable_oversurface", 1);
-					this.attachToNewParent(tile_id, "tiles_container");
-					this.slideToObject(tile_id, this.clientStateArgs.place_id).play();
+					this.attachToNewParent(tile_id, "map_scrollable_anim");
+					var anim = this.slideToObject(tile_id, this.clientStateArgs.place_id, this.anim_duration);
+					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
+						dojo.place(tile_id, "tiles_container");
+					}));
+					anim.play();
 					// ... and previous tile back in the hand
 					var hand_tiles = "hand_tiles_" + this.player_id;
 					this.attachToNewParent(tile_id_to_switch, hand_tiles);
 					dojo.removeClass(tile_id_to_switch, "selected");
 					this.rotateTo(tile_id_to_switch, 0);
 					dojo.destroy("rotate_click");
-					var animation_id = this.slideToObject(tile_id_to_switch, hand_tiles);
+					var animation_id = this.slideToObject(tile_id_to_switch, hand_tiles, this.anim_duration);
 					dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 						dojo.style(tile_id_to_switch, 'top', 'auto');
 						dojo.style(tile_id_to_switch, 'left', 'auto');
@@ -522,9 +541,11 @@ define([
 				this.clientStateArgs.place_id = place_id;
 				var tile_id = this.clientStateArgs.worker_id;
 				//this.setScale("map_scrollable_oversurface", 1);
-				this.attachToNewParent(tile_id, "tiles_container");
-				var animation_id = this.slideToObject(tile_id, place_id);
+				this.attachToNewParent(tile_id, "map_scrollable_anim");
+				var animation_id = this.slideToObject(tile_id, place_id, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
+					console.log(tile_id);
+					dojo.place(tile_id, "tiles_container");
 					if (this.gamedatas.gamestate.name != "client_selectWorkerRotate") {
 						// A worker tile is placed on the board for the first time in this player tour
 						this.setClientState("client_selectWorkerRotate", {
@@ -738,8 +759,12 @@ define([
 						),
 						"player_board_" + notif.args.player_id);
 					//this.setScale("map_scrollable", 1); // Avoid misplacement error
-					this.attachToNewParent(tile_id, "map_scrollable");
-					this.slideToObjectPos(tile_id, "map_scrollable", to_left, to_top).play();
+					this.attachToNewParent(tile_id, "map_scrollable_anim");
+					var anim = this.slideToObjectPos(tile_id, "map_scrollable_anim", to_left, to_top, this.anim_duration);
+					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
+						dojo.place(tile_id, "map_scrollable");
+					}));
+					anim.play();
 					//this.setScale("map_scrollable", this.scrollmap.zoom);
 					// this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y ); TODO
 				}
@@ -769,10 +794,11 @@ define([
 				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
 				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
 				//this.setScale("map_scrollable", 1);
-				this.attachToNewParent(first_tile_id, "map_scrollable");
-				this.jungles_display.removeFromZone(first_tile_id, false, "map_scrollable");
-				var animation_id = this.slideToObjectPos(first_tile_id, "map_scrollable", first_to_left, first_to_top);
+				this.attachToNewParent(first_tile_id, "map_scrollable_anim");
+				this.jungles_display.removeFromZone(first_tile_id, false, null);
+				var animation_id = this.slideToObjectPos(first_tile_id, "map_scrollable_anim", first_to_left, first_to_top, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
+					dojo.place(first_tile_id, "map_scrollable");
 					dojo.removeClass(first_tile_id, "selected");
 					dojo.query("#places_container .place").forEach(dojo.destroy);
 					if (notifJungleAdded.args.tile_2_id != null) {
@@ -781,22 +807,26 @@ define([
 						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
 						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
 						//this.setScale("map_scrollable", 1);
-						this.attachToNewParent(second_tile_id, "map_scrollable");
-						this.jungles_display.removeFromZone(second_tile_id, false, "map_scrollable");
-						this.slideToObjectPos(second_tile_id, "map_scrollable", second_to_left, second_to_top).play();
+						this.attachToNewParent(second_tile_id, "map_scrollable_anim");
+						this.jungles_display.removeFromZone(second_tile_id, false, null);
+						var anim2 = this.slideToObjectPos(second_tile_id, "map_scrollable_anim", second_to_left, second_to_top, this.anim_duration).play();
+						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
+							dojo.place(second_tile_id, "map_scrollable");
+						}));
+						anim2.play();
 						//this.setScale("map_scrollable", this.scrollmap.zoom);
 						// Sometimes the tile is misplaced
-						setTimeout(function () {
+						setTimeout(function (second_tile_id, second_to_left, second_to_top) {
 							dojo.attr(second_tile_id, 'style', "left: " + second_to_left + "px; top: " + second_to_top + "px;");
-						}, 1000);
+						}, this.anim_duration+500, second_tile_id, second_to_left, second_to_top);
 					}
 				}));
 				animation_id.play();
 				//this.setScale("map_scrollable", this.scrollmap.zoom);
 				// Sometimes the tile is misplaced
-				setTimeout(function () {
+				setTimeout(function (first_tile_id, first_to_left, first_to_top) {
 					dojo.attr(first_tile_id, 'style', "left: " + first_to_left + "px; top: " + first_to_top + "px;");
-				}, 1000);
+				}, this.anim_duration+500, first_tile_id, first_to_left, first_to_top);
 			},
 
 			notif_zombieJungle: function (notif) {

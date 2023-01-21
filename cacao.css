@@ -30,7 +30,7 @@
     touch-action:none;
     /* overscroll-behavior-y: contain; */
 }
-#map_scrollable, #map_scrollable_oversurface {
+#map_scrollable, #map_scrollable_oversurface, #map_scrollable_anim {
     position: absolute;
     top: 205px;
     left:  315px;

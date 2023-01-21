@@ -10,6 +10,7 @@ define([
                 this.scrollable_div = null;
                 this.surface_div = null;
                 this.onsurface_div = null;
+                this.animation_div = null;
                 this.board_x = 0;
                 this.board_y = 0;
                 this.zoom = 1;
@@ -24,23 +25,38 @@ define([
                 this._scrollDeltaAlignWithZoom = 0;
                 this._pointers = [];
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
+                this.resizeDocObserver = new ResizeObserver(this.onResizeDoc.bind(this));
             },
-            create: function (container_div, scrollable_div, surface_div, onsurface_div) {
+
+            create: function (container_div, scrollable_div, surface_div, onsurface_div, animation_div=null) {
                 this.container_div = container_div;
                 this.scrollable_div = scrollable_div;
                 this.surface_div = surface_div;
                 this.onsurface_div = onsurface_div;
+                this.animation_div = animation_div;
                 dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
                 dojo.connect(this.container_div, 'onwheel', this, 'onWheel');
 
                 this.scrollto(0, 0);
                 this.setMapZoom(this.zoom);
                 this.resizeObserver.observe(this.container_div);
+                this.resizeDocObserver.observe(document.body);
             },
+
             onResize: function () {
                 this.scrollto(this.board_x, this.board_y, 0, 0);
-                //console.log("onResize");
+                console.log("onResize");
             },
+
+            onResizeDoc: function () {
+                console.log("onResizeDoc");
+                if (this.animation_div!==null){
+                    var pos = this._calcPosAnimationDiv();
+                    dojo.style(this.animation_div, "left", pos.x + "px");
+                    dojo.style(this.animation_div, "top", pos.y + "px");
+                }
+            },
+
             _findPointerIndex: function (event) {
                 var i = this._pointers.length;
                 while (i--) {
@@ -50,6 +66,7 @@ define([
                 }
                 return -1;
             },
+
             _addPointer: function (event) {
                 const i = this._findPointerIndex(event);
                 // Update if already present
@@ -60,18 +77,21 @@ define([
                 } else
                     this._pointers.push(event);
             },
+
             _removePointer: function (event) {
                 const i = this._findPointerIndex(event);
                 if (i > -1) {
                     this._pointers.splice(i, 1);
                 }
             },
+
             _getPointerPrevEvent: function (event) {
                 const i = this._findPointerIndex(event);
                 if (i > -1) {
                     return this._pointers[i];
                 }
             },
+
             _getXYCoord: function (ev, ev2) {
                 const width = dojo.style(this.container_div, "width");
                 const height = dojo.style(this.container_div, "height");
@@ -87,6 +107,7 @@ define([
                 const y = clientY - containerRect.y - height / 2;
                 return [x, y];
             },
+
             onPointerDown: function (ev) {
                 if (!this.bEnableScrolling && !this.bEnableZooming)
                     return;
@@ -97,6 +118,7 @@ define([
                 }
                 this._addPointer(ev);
             },
+
             onPointerMove: function (ev) {
                 ev.preventDefault();
                 const prevEv = this._addPointer(ev);
@@ -139,6 +161,7 @@ define([
                 }
                 dojo.stopEvent(ev);
             },
+
             onPointerUp: function (ev) {
                 this._removePointer(ev);
                 // If no pointer left, stop drag or zoom the map
@@ -153,12 +176,29 @@ define([
                     this._prevDist = -1;
                 }
             },
+
             onWheel: function (evt) {
-                if (!this.bEnableZooming)
+                if ((!this.bEnableZooming) || (evt.ctrlKey))
                     return;
                 evt.preventDefault();
                 const [x, y] = this._getXYCoord(evt);
                 this.changeMapZoom(evt.deltaY * -this.zoomWheelDelta, x, y);
+            },
+
+            _calcPosAnimationDiv: function () {
+                const width = dojo.style(this.container_div, "width");
+                const height = dojo.style(this.container_div, "height");
+                const pos = dojo.position(this.scrollable_div.parentNode);
+                const pos2 = dojo.position(this.animation_div.parentNode);
+                const board_x = toint(this.board_x + width / 2);
+                const board_y = toint(this.board_y + height / 2);
+                console.log("_calcPosAnimationDiv");
+                // console.log(board_x, board_y);
+                // console.log(pos, pos2);
+                return {
+                    x:(pos.x - pos2.x) + board_x,
+                    y:(pos.y - pos2.y) + board_y
+                };
             },
 
             scroll: function (dx, dy, duration, delay) {
@@ -171,7 +211,7 @@ define([
                 //console.log(dx+' '+dy);
                 this.scrollto(this.board_x + dx, this.board_y + dy, duration, delay);
             },
-
+            
             // Scroll the board to make it centered on given position
             scrollto: function (x, y, duration, delay) {
                 if (typeof duration == 'undefined') {
@@ -190,7 +230,22 @@ define([
                 this.board_x = x;
                 this.board_y = y;
 
+                if (this.animation_div!==null){
+                    // var pos = dojo.position(this.scrollable_div.parentNode);
+                    // var pos2 = dojo.position(this.animation_div.parentNode);
+                    // console.log(pos.x - pos2.x, pos.y - pos2.y);
+                    // var anim_x = (pos.x - pos2.x) + board_x;
+                    // var anim_y = (pos.y - pos2.y) + board_y;
+                    var animation_div_pos =this._calcPosAnimationDiv();
+                    var anim_x = animation_div_pos.x;
+                    var anim_y = animation_div_pos.y;
+                }
+
                 if ((duration == 0) && (delay == 0)) {
+                    if (this.animation_div!==null){
+                        dojo.style(this.animation_div, "left", anim_x + "px");
+                        dojo.style(this.animation_div, "top", anim_y + "px");
+                    }
                     dojo.style(this.scrollable_div, "left", board_x + "px");
                     dojo.style(this.onsurface_div, "left", board_x + "px");
                     dojo.style(this.scrollable_div, "top", board_y + "px");
@@ -198,26 +253,36 @@ define([
                     // dojo.style( dojo.body(), "backgroundPosition", board_x+"px "+board_y+"px" );
                     return;
                 }
-
-                var anim = dojo.fx.combine([
-                    dojo.fx.slideTo({
-                        node: this.scrollable_div,
-                        top: board_y,
-                        left: board_x,
+                var anim1 = dojo.fx.slideTo({
+                    node: this.scrollable_div,
+                    top: board_y,
+                    left: board_x,
+                    unit: "px",
+                    duration: duration,
+                    delay: delay
+                });
+                var anim2 = dojo.fx.slideTo({
+                    node: this.onsurface_div,
+                    top: board_y,
+                    left: board_x,
+                    unit: "px",
+                    duration: duration,
+                    delay: delay
+                });
+                var anims = null;
+                if (this.animation_div!==null){
+                    var anim3 = dojo.fx.slideTo({
+                        node: this.animation_div,
+                        top: anim_y,
+                        left: anim_x,
                         unit: "px",
                         duration: duration,
                         delay: delay
-                    }),
-                    dojo.fx.slideTo({
-                        node: this.onsurface_div,
-                        top: board_y,
-                        left: board_x,
-                        unit: "px",
-                        duration: duration,
-                        delay: delay
-                    })
-                ]);
-
+                    });
+                    anims = [anim1,anim2,anim3];
+                } else
+                    anims = [anim1,anim2];
+                var anim = dojo.fx.combine(anims);
                 anim.play();
             },
 
@@ -271,6 +336,8 @@ define([
                     this._scrollDeltaAlignWithZoom = this.scrollDelta;
                 this.setScale(this.scrollable_div, this.zoom);
                 this.setScale(this.onsurface_div, this.zoom);
+                if (this.animation_div!==null)
+                    this.setScale(this.animation_div, this.zoom);
                 if (this.zoomChangeHandler)
                     this.zoomChangeHandler(this.zoom);
                 const zoomDelta = this.zoom / this._prevZoom;
@@ -322,16 +389,19 @@ define([
                 evt.preventDefault();
                 this.scroll(0, this._scrollDeltaAlignWithZoom);
             },
+
             onMoveLeft: function (evt) {
                 console.log("onMoveLeft");
                 evt.preventDefault();
                 this.scroll(this._scrollDeltaAlignWithZoom, 0);
             },
+
             onMoveRight: function (evt) {
                 console.log("onMoveRight");
                 evt.preventDefault();
                 this.scroll(-this._scrollDeltaAlignWithZoom, 0);
             },
+
             onMoveDown: function (evt) {
                 console.log("onMoveDown");
                 evt.preventDefault();
@@ -364,6 +434,7 @@ define([
 
                 }
             },
+
             disableScrolling: function () {
                 if (this.bEnableScrolling) {
                     this.bEnableScrolling = false;
@@ -397,10 +468,12 @@ define([
                 dojo.query('#' + this.container_div.id + ' .zoomout').connect('onclick', this, 'onZoomOut').style('cursor', 'pointer');
 
             },
+
             onZoomIn: function (evt) {
                 evt.preventDefault();
                 this.changeMapZoom(this.zoomDelta);
             },
+
             onZoomOut: function (evt) {
                 evt.preventDefault();
                 this.changeMapZoom(-this.zoomDelta);

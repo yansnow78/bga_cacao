@@ -46,7 +46,9 @@ var jstpl_player_board = '\
 		<div id="hand_tiles_${playerId}" class="hand-tiles"></div>\
 		<div id="counter_tiles_${playerId}" class="pile-tiles pile-${color}"></div>\
 	</div>';
-	
+
+var jstpl_map_scrollable_anim = '<div id="map_scrollable_anim"></div>';
+
 </script>  
 
 {OVERALL_GAME_FOOTER}
