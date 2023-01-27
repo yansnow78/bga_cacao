@@ -625,7 +625,7 @@
 	width: 70px;
 	background-position: -80px -49px;
 }
-.counter-cacao > DIV {
+.counter-cacao > DIV{
 	background-image:url(img/score.png);
 	background-position: 0 -49px;
 	height: 24px;
@@ -649,7 +649,7 @@
 	width: 70px;
 	background-position: -80px -24px;
 }
-.counter-sun > DIV {
+.counter-sun > DIV:not(.moving) {
 	background-image:url(img/score.png);
 	background-position: 0 -24px;
 	height: 24px;
@@ -665,7 +665,7 @@
 }
 .counter-water {
 }
-.counter-water > DIV {
+.counter-water > DIV:not(.moving) {
 	width: 223px;
 	height: 25px;
 	background-image: url(img/score_water.png);
