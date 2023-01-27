@@ -9,14 +9,31 @@ function (dojo, declare) {
 
     return declare("ebg.core.core_patch", null, {
         constructor: function(){
+            this.calcScale = true;
             console.log('ebg.core.core_patch constructor');
         },
         
+        _calcScale: function( element ){
+            console.log(element);
+            if (!this.calcScale)
+                return 1;
+            var matrix = new DOMMatrix(window.getComputedStyle(element).transform);
+            console.log(matrix.m11);
+            var scale = Math.sqrt(matrix.m11*matrix.m11+ 
+                matrix.m21*matrix.m21+
+                matrix.m31*matrix.m31);
+            var parent = element.parentElement;
+            if (parent === null)
+                return scale;
+            else
+                return scale*this._calcScale(parent);
+        },
+
         // Place an object on another one
         // Note: if it does not work check that:
         //  1°) mobile_obj has a position:absolute or position:relative
         //  2°) a fixed mobile_obj parent has a position absolute or relative
-        placeOnObject: function( mobile_obj, target_obj )
+        placeOnObject: function( mobile_obj, target_obj, scale )
         {
             //console.log( 'placeOnObject' );
             
@@ -45,10 +62,12 @@ function (dojo, declare) {
                 y: tgt.y-src.y + (tgt.h-src.h)/2
             };
             
-            var mobile_obj_parent_alpha = this.getAbsRotationAngle( mobile_obj_dom.parentNode );
+            var mobile_obj_parent = mobile_obj_dom.parentNode;
+            var mobile_obj_parent_alpha = this.getAbsRotationAngle( mobile_obj_parent );
             var vector = this.vector_rotate( vector_abs, mobile_obj_parent_alpha );
 
-            var scale = src.w / mobile_obj_dom.offsetWidth;
+            if (typeof scale == 'undefined')
+                scale = this._calcScale(mobile_obj_dom);
             left = left+vector.x/scale;
             top = top+ vector.y/scale;
             
@@ -64,7 +83,7 @@ function (dojo, declare) {
         // Note: if it does not work check that:
         //  1°) mobile_obj has a position:absolute or position:relative
         //  2°) a fixed mobile_obj parent has a position absolute or relative
-        placeOnObjectPos: function( mobile_obj, target_obj, target_x, target_y )
+        placeOnObjectPos: function( mobile_obj, target_obj, target_x, target_y, scale )
         {
             console.log( 'placeOnObject' );
             
@@ -88,17 +107,18 @@ function (dojo, declare) {
             var left = dojo.style( mobile_obj, 'left' );
             var top = dojo.style( mobile_obj, 'top' );
 
+            if (scale === null)
+                scale = this._calcScale(mobile_obj_dom);
             var vector_abs = {
-                x: tgt.x-src.x + (tgt.w-src.w)/2 + target_x,
-                y: tgt.y-src.y + (tgt.h-src.h)/2 + target_y
+                x: (tgt.x-src.x + (tgt.w-src.w)/2)/scale + target_x,
+                y: (tgt.y-src.y + (tgt.h-src.h)/2)/scale + target_y
             };
 
             var mobile_obj_parent_alpha = this.getAbsRotationAngle( mobile_obj_dom.parentNode );
             var vector = this.vector_rotate( vector_abs, mobile_obj_parent_alpha );
 
-            var scale = src.w / mobile_obj_dom.offsetWidth;
-            left = left+vector.x/scale;
-            top = top+ vector.y/scale;
+            left = left+vector.x;
+            top = top+ vector.y;
 
             // Move to new location and fade in
             dojo.style( mobile_obj, 'top', top + 'px' );
@@ -108,7 +128,7 @@ function (dojo, declare) {
         },     
         
         // Return an animation that is moving (slide) a DOM object over another one
-        slideToObject: function( mobile_obj, target_obj, duration, delay )
+        slideToObject: function( mobile_obj, target_obj, duration, delay, scale )
         {
             if( mobile_obj === null )
             {   console.error( 'slideToObject: mobile obj is null' );   }
@@ -148,7 +168,8 @@ function (dojo, declare) {
             var mobile_obj_parent_alpha = this.getAbsRotationAngle( mobile_obj_dom.parentNode );
             var vector = this.vector_rotate( vector_abs, mobile_obj_parent_alpha );
 
-            var scale = src.w / mobile_obj_dom.offsetWidth;
+            if (typeof scale == 'undefined')
+                scale = this._calcScale(mobile_obj_dom);
             left = left+vector.x/scale;
             top = top+ vector.y/scale;
 
@@ -176,7 +197,7 @@ function (dojo, declare) {
         },
         
         // Return an animation that is moving (slide) a DOM object over another one at the given coordinates
-        slideToObjectPos: function( mobile_obj, target_obj, target_x, target_y, duration, delay )
+        slideToObjectPos: function( mobile_obj, target_obj, target_x, target_y, duration, delay, scale )
         {
             if( mobile_obj === null )
             {   console.error( 'slideToObjectPos: mobile obj is null' );   }
@@ -212,7 +233,8 @@ function (dojo, declare) {
             var left = dojo.style( mobile_obj, 'left' );
             var top = dojo.style( mobile_obj, 'top' );
 
-            var scale = src.w / mobile_obj_dom.offsetWidth;
+            if (typeof scale == 'undefined')
+                scale = this._calcScale(mobile_obj_dom);
             var vector_abs = {
                 x: (tgt.x-src.x)/scale + toint( target_x ),
                 y: (tgt.y-src.y)/scale + toint( target_y )
@@ -245,7 +267,7 @@ function (dojo, declare) {
 		
         // Attach mobile_obj to a new parent, keeping its absolute position in the screen constant.
         // !! mobile_obj is no longer valid after that (a new corresponding mobile_obj is returned)
-        attachToNewParent: function( mobile_obj, new_parent, position )
+        attachToNewParent: function( mobile_obj, new_parent, position, scale )
         {
             //console.log( "attachToNewParent" );
             
@@ -286,8 +308,8 @@ function (dojo, declare) {
             
             var vector = this.vector_rotate( vector_abs, alpha_new_parent );
 
-            var scale = my_new_mobile.getBoundingClientRect().width / my_new_mobile.offsetWidth;
-            console.log(scale);
+            if (typeof scale == 'undefined')
+                scale = this._calcScale(new_parent);
             left = left + vector.x/scale;
             top = top + vector.y/scale;
 
