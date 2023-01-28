@@ -308,7 +308,7 @@ define([
 				}
 				dojo.place('<div class="value-' + cacao + '"></div>', "counter_cacao_" + player_id, "only");
 				dojo.place('<div class="value-' + sun + '"></div>', "counter_sun_" + player_id, "only");
-				dojo.place('<div class="value-' + water + '"></div>', $("counter_water_" + player_id), "only");
+				dojo.place('<div class="value value-' + water + '"></div>', $("counter_water_" + player_id), "only");
 			},
 
 			/*
