@@ -54,6 +54,7 @@ define([
                     var pos = this._calcPosAnimationDiv();
                     dojo.style(this.animation_div, "left", pos.x + "px");
                     dojo.style(this.animation_div, "top", pos.y + "px");
+                    dojo.style(this.animation_div, "zoom", this._getPageZoom());
                 }
             },
 
@@ -92,6 +93,14 @@ define([
                 }
             },
 
+            _getPageZoom: function () {
+                var pageZoomStr = $("page-content").style.getPropertyValue("zoom");
+                var pageZoom = 1;
+                if (pageZoomStr !== "")
+                    pageZoom=parseFloat($("page-content").style.getPropertyValue("zoom"));
+                return pageZoom;
+            },
+
             _getXYCoord: function (ev, ev2) {
                 const width = dojo.style(this.container_div, "width");
                 const height = dojo.style(this.container_div, "height");
@@ -103,8 +112,9 @@ define([
                     clientY = (clientY + ev2.clientY) / 2;
                 }
 
-                const x = clientX - containerRect.x - width / 2;
-                const y = clientY - containerRect.y - height / 2;
+                var pageZoom = this._getPageZoom();
+                const x = clientX/pageZoom - containerRect.x - width / 2;
+                const y = clientY/pageZoom - containerRect.y - height / 2;
                 return [x, y];
             },
 
@@ -192,7 +202,7 @@ define([
                 const pos2 = dojo.position(this.animation_div.parentNode);
                 const board_x = toint(this.board_x + width / 2);
                 const board_y = toint(this.board_y + height / 2);
-                console.log("_calcPosAnimationDiv");
+                // console.log("_calcPosAnimationDiv");
                 // console.log(board_x, board_y);
                 // console.log(pos, pos2);
                 return {
@@ -385,25 +395,25 @@ define([
             },
 
             onMoveTop: function (evt) {
-                console.log("onMoveTop");
+                // console.log("onMoveTop");
                 evt.preventDefault();
                 this.scroll(0, this._scrollDeltaAlignWithZoom);
             },
 
             onMoveLeft: function (evt) {
-                console.log("onMoveLeft");
+                // console.log("onMoveLeft");
                 evt.preventDefault();
                 this.scroll(this._scrollDeltaAlignWithZoom, 0);
             },
 
             onMoveRight: function (evt) {
-                console.log("onMoveRight");
+                // console.log("onMoveRight");
                 evt.preventDefault();
                 this.scroll(-this._scrollDeltaAlignWithZoom, 0);
             },
 
             onMoveDown: function (evt) {
-                console.log("onMoveDown");
+                // console.log("onMoveDown");
                 evt.preventDefault();
                 this.scroll(0, -this._scrollDeltaAlignWithZoom);
             },
