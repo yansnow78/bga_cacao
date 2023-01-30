@@ -28,12 +28,13 @@ define([
 				this.scrollmap = new ebg.scrollmapWithZoom(); // Scrollable area
 				this.scrollmap.zoom = 0.8;
 				this.clientStateArgs = {}; // Data during one state
-
+				//this.default_viewport = "width=740px";//this.interface_min_width; //width=device-width, initial-scale=1.0
+				this.setViewPort();
 			},
 
 			setup: function (gamedatas) {
 				// Set mobile viewport for portrait orientation based on gameinfos.inc.php
-				// this.default_viewport = "width=" + this.interface_min_width;
+				//this.default_viewport = this.interface_min_width; /*"width=740px" +  */
 				this.onScreenWidthChange();
 				
 				/*
@@ -41,7 +42,7 @@ define([
 				*/
 				dojo.place(this.format_block("jstpl_map_scrollable_anim", {}), document.body);
 				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
-				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'), $('map_scrollable_oversurface'), $('map_scrollable_anim'));
+				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'),$('map_scrollable_oversurface'), $('map_scrollable_anim'));
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
@@ -127,7 +128,32 @@ define([
 
 			},
 
+			setViewPort : function () {
+				var agent = navigator.userAgent.toLowerCase();
+				if ((agent.indexOf('firefox') >= 0) || (agent.indexOf("fxios") >= 0)){
+					this.interface_min_width=500;
+					if (screen.width < this.interface_min_width) {
+						var viewport = document.getElementsByName("viewport")[0];
+						viewport.setAttribute("content", "width="+this.interface_min_width+"");
+					}
+					// // viewport.setAttribute("content", "width=740");//+this.interface_min_width+
+					// if (viewport === null) {
+					// 	//$('head').append('<meta name="viewport" content="740"/>');
+					// 	viewport=document.createElement('meta');
+					// 	viewport.id = "vp";
+					// 	viewport.name = "viewport";
+					// 	viewport.setAttribute("content", "width=740");
+					// 	document.getElementsByTagName('head')[0].appendChild(viewport);
+					// 	console.log("add viewport");
+					// } else {
+					// 	viewport.setAttribute("content", "width=740");//+this.interface_min_width+
+					// 	console.log("set viewport");
+					// }
+				}
+			},
+			
 			onScreenWidthChange: function () {
+				this.setViewPort();
 				// Remove broken "zoom" property added by BGA framework
 				// this.gameinterface_zoomFactor = 1;
 				// $("page-content").style.removeProperty("zoom");

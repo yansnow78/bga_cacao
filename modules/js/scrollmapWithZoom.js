@@ -28,7 +28,9 @@ define([
                 this.resizeDocObserver = new ResizeObserver(this.onResizeDoc.bind(this));
             },
 
-            create: function (container_div, scrollable_div, surface_div, onsurface_div, animation_div=null) {
+            create: function (container_div, scrollable_div, surface_div, onsurface_div, animation_div=null, page=null) {
+                console.log("ebg.scrollmapWithZoom create");
+                this.page = page;
                 this.container_div = container_div;
                 this.scrollable_div = scrollable_div;
                 this.surface_div = surface_div;
@@ -44,8 +46,8 @@ define([
             },
 
             onResize: function () {
+                // console.log("onResize");
                 this.scrollto(this.board_x, this.board_y, 0, 0);
-                console.log("onResize");
             },
 
             onResizeDoc: function () {
@@ -94,10 +96,14 @@ define([
             },
 
             _getPageZoom: function () {
-                var pageZoomStr = $("page-content").style.getPropertyValue("zoom");
                 var pageZoom = 1;
-                if (pageZoomStr !== "")
-                    pageZoom=parseFloat($("page-content").style.getPropertyValue("zoom"));
+                if  (this.page === null)  {
+                    var pageZoomStr = $("page-content").style.getPropertyValue("zoom");
+                    pageZoom = 1;
+                    if (pageZoomStr !== "")
+                        pageZoom=parseFloat($("page-content").style.getPropertyValue("zoom"));
+                } else
+                    pageZoom = this.page.gameinterface_zoomFactor;
                 return pageZoom;
             },
 

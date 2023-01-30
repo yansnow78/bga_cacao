@@ -14,11 +14,9 @@ function (dojo, declare) {
         },
         
         _calcScale: function( element ){
-            console.log(element);
             if (!this.calcScale)
                 return 1;
             var matrix = new DOMMatrix(window.getComputedStyle(element).transform);
-            console.log(matrix.m11);
             var scale = Math.sqrt(matrix.m11*matrix.m11+ 
                 matrix.m21*matrix.m21+
                 matrix.m31*matrix.m31);
