@@ -25,7 +25,6 @@ define([
                 this._scrollDeltaAlignWithZoom = 0;
                 this._pointers = [];
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
-                this.resizeDocObserver = new ResizeObserver(this.onResizeDoc.bind(this));
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, animation_div=null, page=null) {
@@ -42,22 +41,11 @@ define([
                 this.scrollto(0, 0);
                 this.setMapZoom(this.zoom);
                 this.resizeObserver.observe(this.container_div);
-                this.resizeDocObserver.observe(document.body);
             },
 
             onResize: function () {
                 // console.log("onResize");
                 this.scrollto(this.board_x, this.board_y, 0, 0);
-            },
-
-            onResizeDoc: function () {
-                console.log("onResizeDoc");
-                if (this.animation_div!==null){
-                    var pos = this._calcPosAnimationDiv();
-                    dojo.style(this.animation_div, "left", pos.x + "px");
-                    dojo.style(this.animation_div, "top", pos.y + "px");
-                    dojo.style(this.animation_div, "zoom", this._getPageZoom());
-                }
             },
 
             _findPointerIndex: function (event) {
@@ -201,22 +189,6 @@ define([
                 this.changeMapZoom(evt.deltaY * -this.zoomWheelDelta, x, y);
             },
 
-            _calcPosAnimationDiv: function () {
-                const width = dojo.style(this.container_div, "width");
-                const height = dojo.style(this.container_div, "height");
-                const pos = dojo.position(this.scrollable_div.parentNode);
-                const pos2 = dojo.position(this.animation_div.parentNode);
-                const board_x = toint(this.board_x + width / 2);
-                const board_y = toint(this.board_y + height / 2);
-                // console.log("_calcPosAnimationDiv");
-                // console.log(board_x, board_y);
-                // console.log(pos, pos2);
-                return {
-                    x:(pos.x - pos2.x) + board_x,
-                    y:(pos.y - pos2.y) + board_y
-                };
-            },
-
             scroll: function (dx, dy, duration, delay) {
                 if (typeof duration == 'undefined') {
                     duration = 350; // Default duration
@@ -246,21 +218,10 @@ define([
                 this.board_x = x;
                 this.board_y = y;
 
-                if (this.animation_div!==null){
-                    // var pos = dojo.position(this.scrollable_div.parentNode);
-                    // var pos2 = dojo.position(this.animation_div.parentNode);
-                    // console.log(pos.x - pos2.x, pos.y - pos2.y);
-                    // var anim_x = (pos.x - pos2.x) + board_x;
-                    // var anim_y = (pos.y - pos2.y) + board_y;
-                    var animation_div_pos =this._calcPosAnimationDiv();
-                    var anim_x = animation_div_pos.x;
-                    var anim_y = animation_div_pos.y;
-                }
-
                 if ((duration == 0) && (delay == 0)) {
                     if (this.animation_div!==null){
-                        dojo.style(this.animation_div, "left", anim_x + "px");
-                        dojo.style(this.animation_div, "top", anim_y + "px");
+                        dojo.style(this.animation_div, "left", board_x + "px");
+                        dojo.style(this.animation_div, "top", board_y + "px");
                     }
                     dojo.style(this.scrollable_div, "left", board_x + "px");
                     dojo.style(this.onsurface_div, "left", board_x + "px");
@@ -289,8 +250,8 @@ define([
                 if (this.animation_div!==null){
                     var anim3 = dojo.fx.slideTo({
                         node: this.animation_div,
-                        top: anim_y,
-                        left: anim_x,
+                        top: board_y,
+                        left: board_x,
                         unit: "px",
                         duration: duration,
                         delay: delay

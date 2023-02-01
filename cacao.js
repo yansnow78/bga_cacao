@@ -40,7 +40,6 @@ define([
 				/*
 					Create scrollmap
 				*/
-				dojo.place(this.format_block("jstpl_map_scrollable_anim", {}), document.body);
 				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
 				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'),$('map_scrollable_oversurface'), $('map_scrollable_anim'));
 				/*

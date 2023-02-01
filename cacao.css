@@ -12,6 +12,10 @@
  * Cacao stylesheet
  *
  */
+ :root {
+	--z_index_anim : 10;
+}
+
 *, ::after, ::before {
 	box-sizing: border-box;
 }
@@ -21,14 +25,27 @@
 /* body {
     overscroll-behavior-y: contain;
 } */
+/* #leftright_page_wrapper, #leftright_page_wrapper * {
+	transform-style: preserve-3d;
+} */
 #map_container {
     position: relative;
     width: 100%;
     height: 600px;
-    overflow: hidden;
+    /* overflow: hidden; */
     /* touch-action:pinch-zoom; */
     touch-action:none;
     /* overscroll-behavior-y: contain; */
+}
+#map_subcontainer1 {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+#map_scrollable_anim {
+	/* isolation: isolate; */
+	z-index: var(--z_index_anim);
 }
 #map_scrollable, #map_scrollable_oversurface, #map_scrollable_anim {
     position: absolute;
@@ -304,6 +321,7 @@
 }
 .hand-tiles.active .worker {
 	cursor: pointer;
+	z-index: var(--z_index_anim);
 }
 .hand-tiles .tile_worker_1111.color_w {
 	background-position: -2px -206px;
@@ -663,8 +681,6 @@
 .counter-sun .value-3 {
 	width:72px;
 }
-.counter-water {
-}
 .counter-water > .value {
 	width: 223px;
 	height: 25px;
@@ -704,6 +720,7 @@
 */
 .moving {
 	display: block;
+	z-index: var(--z_index_anim);
 	background-image:url(img/score.png);
 }
 .moving-gold {
