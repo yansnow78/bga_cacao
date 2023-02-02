@@ -9,7 +9,7 @@
  *
  * cacao.js
  */
-define([
+ define([
 	"dojo", "dojo/_base/declare", 
 	'./modules/js/scrollmapWithZoom',
 	'./modules/js/core_patch',
@@ -40,8 +40,12 @@ define([
 				/*
 					Create scrollmap
 				*/
+				//this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'),$('map_scrollable_oversurface'), $('map_scrollable_anim'));
+				this.scrollmap.createCompletely($('map_container'), this);
+				dojo.place(dojo.eval("jstpl_map_onsurface"), this.scrollmap.onsurface_div);
+				dojo.place(dojo.eval("jstpl_map_clipped"), this.scrollmap.clipped_div);
 				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
-				this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'),$('map_scrollable_oversurface'), $('map_scrollable_anim'));
+				this.scrollmap.setMapZoom(0.8);
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
@@ -354,7 +358,7 @@ define([
 					from_zone = "jungle_" + card_id;
 					console.log(material_parent, from_zone, to_zone);
 				} else {
-					material_parent = "map_scrollable_anim";
+					material_parent = this.scrollmap.animation_div;
 					if (material == "gold")
 						from_zone = "player_score_" + player_id;
 					else
@@ -362,7 +366,6 @@ define([
 					to_zone = "jungle_" + card_id;
 					console.log(material_parent, from_zone, to_zone);
 				}
-				//this.setScale("map_scrollable", 1);
 				this.slideTemporaryObject(
 					this.format_block("jstpl_material", { 'material': material }),
 					material_parent,
@@ -371,7 +374,6 @@ define([
 					this.anim_duration,
 					delay
 				);
-				//this.setScale("map_scrollable", this.scrollmap.zoom);
 			},
 
 			/*
@@ -411,7 +413,7 @@ define([
 								'left': to_left,
 								'top': to_top
 							}),
-						"map_scrollable");
+						this.scrollmap.scrollable_div);
 				} else {
 					tile_id = "worker_" + tile_type + "_" + card_id;
 					if (overbuilded == "1") {
@@ -431,7 +433,7 @@ define([
 								'top': to_top
 							}
 						),
-						"map_scrollable");
+						this.scrollmap.scrollable_div);
 					if (overbuilded == "1") {
 						dojo.addClass(tile_id, "overbuild");
 					}
@@ -531,8 +533,7 @@ define([
 					// New tile to place...
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
-					//this.setScale("map_scrollable_oversurface", 1);
-					this.attachToNewParent(tile_id, "map_scrollable_anim");
+					this.attachToNewParent(tile_id, this.scrollmap.animation_div);
 					var anim = this.slideToObject(tile_id, this.clientStateArgs.place_id, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, "tiles_container");
@@ -553,7 +554,6 @@ define([
 						dojo.connect($(tile_id_to_switch), "onclick", this, "onWorkerTile");
 					}));
 					animation_id.play();
-					//this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
 				}
 			},
 
@@ -566,8 +566,7 @@ define([
 				dojo.stopEvent(event);
 				this.clientStateArgs.place_id = place_id;
 				var tile_id = this.clientStateArgs.worker_id;
-				//this.setScale("map_scrollable_oversurface", 1);
-				this.attachToNewParent(tile_id, "map_scrollable_anim");
+				this.attachToNewParent(tile_id, this.scrollmap.animation_div);
 				var animation_id = this.slideToObject(tile_id, place_id, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 					console.log(tile_id);
@@ -584,7 +583,6 @@ define([
 					}
 				}));
 				animation_id.play();
-				//this.setScale("map_scrollable_oversurface", this.scrollmap.zoom);
 			},
 
 			/*
@@ -767,7 +765,7 @@ define([
 								'left': to_left
 							}
 						),
-						"map_scrollable"
+						this.scrollmap.scrollable_div
 					);
 				} else {
 					// Show worker tile with movement from the player zone
@@ -784,14 +782,12 @@ define([
 							}
 						),
 						"player_board_" + notif.args.player_id);
-					//this.setScale("map_scrollable", 1); // Avoid misplacement error
-					this.attachToNewParent(tile_id, "map_scrollable_anim");
-					var anim = this.slideToObjectPos(tile_id, "map_scrollable_anim", to_left, to_top, this.anim_duration);
+					this.attachToNewParent(tile_id, this.scrollmap.animation_div);
+					var anim = this.slideToObjectPos(tile_id, this.scrollmap.animation_div, to_left, to_top, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
-						dojo.place(tile_id, "map_scrollable");
+						dojo.place(tile_id, this.scrollmap.scrollable_div);
 					}));
 					anim.play();
-					//this.setScale("map_scrollable", this.scrollmap.zoom);
 					// this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y ); TODO
 				}
 				dojo.addClass(tile_id, "last");
@@ -819,12 +815,11 @@ define([
 				var first_tile_id = notifJungleAdded.args.tile_id;
 				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
 				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
-				//this.setScale("map_scrollable", 1);
-				this.attachToNewParent(first_tile_id, "map_scrollable_anim");
+				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div);
 				this.jungles_display.removeFromZone(first_tile_id, false, null);
-				var animation_id = this.slideToObjectPos(first_tile_id, "map_scrollable_anim", first_to_left, first_to_top, this.anim_duration);
+				var animation_id = this.slideToObjectPos(first_tile_id, this.scrollmap.animation_div, first_to_left, first_to_top, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
-					dojo.place(first_tile_id, "map_scrollable");
+					dojo.place(first_tile_id, this.scrollmap.scrollable_div);
 					dojo.removeClass(first_tile_id, "selected");
 					dojo.query("#places_container .place").forEach(dojo.destroy);
 					if (notifJungleAdded.args.tile_2_id != null) {
@@ -832,15 +827,13 @@ define([
 						var second_tile_id = notifJungleAdded.args.tile_2_id;
 						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
 						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
-						//this.setScale("map_scrollable", 1);
-						this.attachToNewParent(second_tile_id, "map_scrollable_anim");
+						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div);
 						this.jungles_display.removeFromZone(second_tile_id, false, null);
-						var anim2 = this.slideToObjectPos(second_tile_id, "map_scrollable_anim", second_to_left, second_to_top, this.anim_duration).play();
+						var anim2 = this.slideToObjectPos(second_tile_id, this.scrollmap.animation_div, second_to_left, second_to_top, this.anim_duration).play();
 						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
-							dojo.place(second_tile_id, "map_scrollable");
+							dojo.place(second_tile_id, this.scrollmap.scrollable_div);
 						}));
 						anim2.play();
-						//this.setScale("map_scrollable", this.scrollmap.zoom);
 						// Sometimes the tile is misplaced
 						setTimeout(function (second_tile_id, second_to_left, second_to_top) {
 							dojo.attr(second_tile_id, 'style', "left: " + second_to_left + "px; top: " + second_to_top + "px;");
@@ -848,7 +841,6 @@ define([
 					}
 				}));
 				animation_id.play();
-				//this.setScale("map_scrollable", this.scrollmap.zoom);
 				// Sometimes the tile is misplaced
 				setTimeout(function (first_tile_id, first_to_left, first_to_top) {
 					dojo.attr(first_tile_id, 'style', "left: " + first_to_left + "px; top: " + first_to_top + "px;");

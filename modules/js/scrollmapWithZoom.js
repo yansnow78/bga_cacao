@@ -1,5 +1,5 @@
+// import {html} from 'lit';
 /* Scrollmap: a scrollable map */
-
 define([
     "dojo", "dojo/_base/declare"
 ],
@@ -10,6 +10,7 @@ define([
                 this.scrollable_div = null;
                 this.surface_div = null;
                 this.onsurface_div = null;
+                this.clipped_div = null;
                 this.animation_div = null;
                 this.board_x = 0;
                 this.board_y = 0;
@@ -27,13 +28,14 @@ define([
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
 
-            create: function (container_div, scrollable_div, surface_div, onsurface_div, animation_div=null, page=null) {
+            create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null) {
                 console.log("ebg.scrollmapWithZoom create");
                 this.page = page;
                 this.container_div = container_div;
                 this.scrollable_div = scrollable_div;
                 this.surface_div = surface_div;
                 this.onsurface_div = onsurface_div;
+                this.clipped_div = clipped_div;
                 this.animation_div = animation_div;
                 dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
                 dojo.connect(this.container_div, 'onwheel', this, 'onWheel');
@@ -41,6 +43,37 @@ define([
                 this.scrollto(0, 0);
                 this.setMapZoom(this.zoom);
                 this.resizeObserver.observe(this.container_div);
+            },
+
+            createCompletely: function (container_div, page=null) {
+                console.log("createCompletely");
+                var tmpl = String.raw`
+                    <div class="scrollmap_overflow_clipped">
+                        <div class="scrollmap_scrollable"></div>
+                        <div class="scrollmap_surface" ></div>
+                        <div class="scrollmap_onsurface"></div>
+                    </div>
+                    <i href="#" class="scrollmap movetop fa fa-chevron-up centericon"></i>
+                    <i href="#" class="scrollmap moveleft fa fa-chevron-left centericon"></i>
+                    <i href="#" class="scrollmap moveright fa fa-chevron-right centericon"></i>
+                    <i href="#" class="scrollmap movedown fa fa-chevron-down centericon"></i>
+                    <i href="#" title="Zoom in" class="scrollmap zoomin fa fa-search-plus centericon"></i>
+                    <i href="#" title="Zoom out" class="scrollmap zoomout fa fa-search-minus centericon"></i>
+                    <div class="scrollmap_anim"></div>
+                `;
+                dojo.place(tmpl, container_div);
+                var scrollable_div = container_div.querySelector('.scrollmap_scrollable');
+                console.log(scrollable_div.className );
+                var surface_div = container_div.querySelector('.scrollmap_surface');
+                var onsurface_div = container_div.querySelector('.scrollmap_onsurface');
+                var clipped_div = container_div.querySelector('.scrollmap_overflow_clipped');
+                var animation_div = container_div.querySelector('.scrollmap_anim');
+                //container_div.innerHTML = tmpl;
+                //this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page);
+                this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page);
+            },
+
+            _init: function () {
             },
 
             onResize: function () {
@@ -278,12 +311,14 @@ define([
                 var min_x = 0;
                 var min_y = 0;
 
-                var css_query = '#' + this.scrollable_div.id + " > *";
+                var css_query = "> *";
+                var css_query_div = this.scrollable_div;
                 if (typeof custom_css_query != 'undefined') {
                     css_query = custom_css_query;
+                    css_query_div = null;
                 }
 
-                dojo.query(css_query).forEach(dojo.hitch(this, function (node) {
+                dojo.query(css_query, css_query_div).forEach(dojo.hitch(this, function (node) {
                     max_x = Math.max(max_x, dojo.style(node, 'left') + dojo.style(node, 'width'));
                     min_x = Math.min(min_x, dojo.style(node, 'left'));
 

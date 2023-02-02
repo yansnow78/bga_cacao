@@ -1,24 +1,6 @@
 {OVERALL_GAME_HEADER}
 
-<div id="map_container">
-	<div id="map_subcontainer1">
-		<div id="map_scrollable"></div>
-		<div id="map_surface"></div>
-		<div id="map_scrollable_oversurface">
-			<div id="places_container"></div>
-			<div id="tiles_container"></div>
-		</div>
-		<div id="jungle_display" style="transform-origin: 0px 0px;">
-			<div id="counter_jungles" class="pile-tiles pile-g"></div>
-		</div>
-	</div>
-	<i href="#" class="scrollmap movetop fa fa-chevron-up centericon"></i>
-	<i href="#" class="scrollmap moveleft fa fa-chevron-left centericon"></i>
-	<i href="#" class="scrollmap moveright fa fa-chevron-right centericon"></i>
-	<i href="#" class="scrollmap movedown fa fa-chevron-down centericon"></i>
-	<i href="#" title="Zoom in" class="scrollmap zoomin fa fa-search-plus centericon"></i>
-	<i href="#" title="Zoom out" class="scrollmap zoomout fa fa-search-minus centericon"></i>
-	<div id="map_scrollable_anim"></div>
+<div id="map_container" class="scrollmap_container">
 </div>
 
 <div id="map_footer" class="whiteblock">
@@ -50,6 +32,13 @@ var jstpl_player_board = '\
 		<div id="counter_tiles_${playerId}" class="pile-tiles pile-${color}"></div>\
 	</div>';
 
+var jstpl_map_onsurface = `
+	<div id="places_container"></div>
+	<div id="tiles_container"></div>`;
+var jstpl_map_clipped =`
+	<div id="jungle_display" style="transform-origin: 0px 0px;">
+		<div id="counter_jungles" class="pile-tiles pile-g"></div>
+	</div>`
 </script>  
 
 {OVERALL_GAME_FOOTER}
