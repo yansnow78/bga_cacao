@@ -45,7 +45,7 @@
 				dojo.place(dojo.eval("jstpl_map_onsurface"), this.scrollmap.onsurface_div);
 				dojo.place(dojo.eval("jstpl_map_clipped"), this.scrollmap.clipped_div);
 				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
-				this.scrollmap.setMapZoom(0.8);
+				this.scrollmap.setMapZoom(this.scrollmap.zoom);
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
