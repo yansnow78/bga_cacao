@@ -65,71 +65,73 @@
     text-align: center;
 }
 /*
-	Move arrows
+	Move arrows & zoom
 */
-#movetop,
-#moveleft,
-#moveright,
-#movedown {
+.centericon {
+	text-align: center;
+	width: 100%;
+	vertical-align: middle;
+}
+.scrollmap.movetop,
+.scrollmap.moveleft,
+.scrollmap.moveright,
+.scrollmap.movedown {
     display: block;
     position: absolute;
-    background-image: url('../../../img/common/arrows.png');
+	background-color: rgba(255,255,255,0.5);
+	font-size: 30px;
+    overflow: hidden;
+}
+.scrollmap.movetop,
+.scrollmap.movedown {
     width: 32px;
+    height: 24px;
+	line-height: 22px;
+    left: 50%;
+	margin-left: -16px;
+}
+.scrollmap.moveleft,
+.scrollmap.moveright {
+    width: 24px;
     height: 32px;
+	line-height: 34px;
+    top: 50%;
+	margin-top: -16px;
 }
-#movetop {
+.scrollmap.movetop {
     top: 0px;
-    left: 50%;
-	margin-left: -16px;
-    background-position: 0px 32px;
+	border-radius: 0 0 16px 16px;
 }
-#moveleft {
-    top: 50%;
-	margin-top: -16px;
+.scrollmap.moveleft {
     left: 0px;
-    background-position: 32px 0px;
+	border-radius: 0 16px 16px 0;
 }
-#moveright {
-    top: 50%;
-	margin-top: -16px;
+.scrollmap.moveright {
     right: 0px;
-    background-position: 0px 0px;
+	border-radius: 16px 0 0 16px;
 }
-#movedown {
-    bottom: 0px;
-    left: 50%;
-	margin-left: -16px;
-    background-position: 32px 32px;
+.scrollmap.movedown {
+	bottom: 0px;
+	border-radius: 16px 16px 0 0;
 }
-/*
-	Zoom
-*/
-#zoomin, #zoomout  {
+.scrollmap.zoomin, .scrollmap.zoomout  {
 	display: block;
     position: absolute;
     top: 50%;
     width: 32px;
     height: 32px;
 	border-radius: 0 16px 16px 0;
-	background-image:url(img/zoom.png);
-	background-repeat: no-repeat;
 	background-color: rgba(255,255,255,0.5);
-	background-origin: content-box
-}
-#zoomin{
-	background-position: 0 0;
-}
-#zoomout{
-	background-position: -32px 0;
+	font-size: 28px;
 }
 @media (hover: none) and (pointer: coarse) {
-	#zoomin  {
+	.scrollmap.zoomin  {
 		margin-top: 48px;
 	}
-	#zoomout  {
+	.scrollmap.zoomout  {
 		margin-top: 102px;
 	}
-	:is(#zoomin, #zoomout, #movetop, #moveleft, #moveright, #movedown)::after {
+	:is(.scrollmap.zoomin, .scrollmap.zoomout, .scrollmap.movetop, .scrollmap.moveleft, .scrollmap.moveright, .scrollmap.movedown)::after {
 		content:'';
 		position:absolute;
 		top:-16px; bottom:-16px; 
@@ -137,10 +139,10 @@
 	}
 }
 @media (hover: hover) and (pointer: fine) {
-	#zoomin  {
+	.scrollmap.zoomin  {
 		margin-top: 20px;
 	}
-	#zoomout  {
+	.scrollmap.zoomout  {
 		margin-top: 52px;
 	}
 }

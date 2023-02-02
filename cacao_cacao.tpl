@@ -12,12 +12,12 @@
 			<div id="counter_jungles" class="pile-tiles pile-g"></div>
 		</div>
 	</div>
-	<a id="movetop" href="#"></a>
-	<a id="moveleft" href="#"></a>
-	<a id="moveright" href="#"></a>
-	<a id="movedown" href="#"></a>
-	<a id="zoomin" href="#" title="Zoom in"></a>
-	<a id="zoomout" href="#" title="Zoom out"></a>
+	<i href="#" class="scrollmap movetop fa fa-chevron-up centericon"></i>
+	<i href="#" class="scrollmap moveleft fa fa-chevron-left centericon"></i>
+	<i href="#" class="scrollmap moveright fa fa-chevron-right centericon"></i>
+	<i href="#" class="scrollmap movedown fa fa-chevron-down centericon"></i>
+	<i href="#" title="Zoom in" class="scrollmap zoomin fa fa-search-plus centericon"></i>
+	<i href="#" title="Zoom out" class="scrollmap zoomout fa fa-search-minus centericon"></i>
 	<div id="map_scrollable_anim"></div>
 </div>
 
