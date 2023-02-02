@@ -28,7 +28,7 @@ define([
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
 
-            create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null) {
+            create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
                 console.log("ebg.scrollmapWithZoom create");
                 this.page = page;
                 this.container_div = container_div;
@@ -37,6 +37,10 @@ define([
                 this.onsurface_div = onsurface_div;
                 this.clipped_div = clipped_div;
                 this.animation_div = animation_div;
+
+                if (create_extra !== null)
+                    create_extra(this);
+
                 dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
                 dojo.connect(this.container_div, 'onwheel', this, 'onWheel');
 
@@ -45,7 +49,7 @@ define([
                 this.resizeObserver.observe(this.container_div);
             },
 
-            createCompletely: function (container_div, page=null) {
+            createCompletely: function (container_div, page=null, create_extra=null) {
                 console.log("createCompletely");
                 var tmpl = String.raw`
                     <div class="scrollmap_overflow_clipped">
@@ -70,7 +74,7 @@ define([
                 var animation_div = container_div.querySelector('.scrollmap_anim');
                 //container_div.innerHTML = tmpl;
                 //this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page);
-                this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page);
+                this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page, create_extra);
             },
 
             _init: function () {

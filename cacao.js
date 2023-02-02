@@ -40,12 +40,13 @@
 				/*
 					Create scrollmap
 				*/
-				//this.scrollmap.create($('map_container'), $('map_scrollable'), $('map_surface'),$('map_scrollable_oversurface'), $('map_scrollable_anim'));
-				this.scrollmap.createCompletely($('map_container'), this);
-				dojo.place(dojo.eval("jstpl_map_onsurface"), this.scrollmap.onsurface_div);
-				dojo.place(dojo.eval("jstpl_map_clipped"), this.scrollmap.clipped_div);
-				this.scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
-				this.scrollmap.setMapZoom(this.scrollmap.zoom);
+				const scrollmapCreateExtra = (scrollmap) => {
+					dojo.place(dojo.eval("jstpl_map_onsurface"), scrollmap.onsurface_div);
+					dojo.place(dojo.eval("jstpl_map_clipped"), scrollmap.clipped_div);
+					scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
+				};
+				this.scrollmap.createCompletely($('map_container'), this, scrollmapCreateExtra);
+
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
