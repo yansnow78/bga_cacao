@@ -36,7 +36,7 @@ var jstpl_map_onsurface = `
 	<div id="places_container"></div>
 	<div id="tiles_container"></div>`;
 var jstpl_map_clipped =`
-	<div id="jungle_display" style="transform-origin: 0px 0px;">
+	<div id="jungle_display" class="scrollmap-zoomed" style="transform-origin: 0px 0px;">
 		<div id="counter_jungles" class="pile-tiles pile-g"></div>
 	</div>`
 </script>  

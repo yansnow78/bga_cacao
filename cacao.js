@@ -500,7 +500,7 @@
 				Scrollmap zoom
 			*/
 			handleMapZoomChange: function (zoom) {
-				this.setScale('jungle_display', zoom);
+				// this.setScale('jungle_display', zoom);
 			},
 
 			setScale: function (elemId, scale) {

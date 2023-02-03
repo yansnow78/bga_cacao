@@ -37,6 +37,16 @@ define([
                 this.onsurface_div = onsurface_div;
                 this.clipped_div = clipped_div;
                 this.animation_div = animation_div;
+                var styleElt = document.createElement("style");
+                const styleSheetContent = String.raw`
+                    #${container_div.id}.scrollmap-zoomed{
+                        transform:;
+                    }
+                `;
+                // styleElt.type = "text/css";
+                styleElt.id = 'css-'+container_div.id;
+                styleElt.appendChild(document.createTextNode(styleSheetContent));
+                document.head.appendChild(styleElt);
 
                 if (create_extra !== null)
                     create_extra(this);
@@ -354,7 +364,14 @@ define([
                 this.setScale(this.onsurface_div, this.zoom);
                 if (this.animation_div!==null)
                     this.setScale(this.animation_div, this.zoom);
-                if (this.zoomChangeHandler)
+                const css = String.raw;
+                const styleSheetContent = css`
+                    #${this.container_div.id} .scrollmap-zoomed{
+                        transform:scale(${this.zoom});
+                    }
+                `;
+                document.querySelector('#css-' + this.container_div.id).textContent=styleSheetContent;
+                if (this.zoomChangeHandler);
                     this.zoomChangeHandler(this.zoom);
                 const zoomDelta = this.zoom / this._prevZoom;
                 //console.log(x+' '+ y+' '+ zoomDelta+' '+ this.zoom);
