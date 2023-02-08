@@ -40,6 +40,7 @@
         /*********** Place your code below:  ************/
 
 		$this->tpl['LABEL_ENLARGE_DISPLAY'] = self::_("Enlarge display");
+        $this->tpl['LABEL_REDUCE_DISPLAY'] = self::_("Reduce display");
 
         /*
         

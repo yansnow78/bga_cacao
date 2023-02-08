@@ -62,25 +62,25 @@
 /*
 	Move arrows & zoom
 */
-.centericon {
+.scrollmap_centericon {
   text-align: center;
   width: 100%;
   vertical-align: middle;
 }
 
-.scrollmap.movetop,
-.scrollmap.moveleft,
-.scrollmap.moveright,
-.scrollmap.movedown {
-  display: block;
+.scrollmap_movetop,
+.scrollmap_moveleft,
+.scrollmap_moveright,
+.scrollmap_movedown {
+  display: none;
   position: absolute;
   background-color: rgba(255, 255, 255, 0.5);
   font-size: 30px;
   overflow: hidden;
 }
 
-.scrollmap.movetop,
-.scrollmap.movedown {
+.scrollmap_movetop,
+.scrollmap_movedown {
   width: 32px;
   height: 24px;
   line-height: 22px;
@@ -88,8 +88,8 @@
   margin-left: -16px;
 }
 
-.scrollmap.moveleft,
-.scrollmap.moveright {
+.scrollmap_moveleft,
+.scrollmap_moveright {
   width: 24px;
   height: 32px;
   line-height: 34px;
@@ -97,28 +97,28 @@
   margin-top: -16px;
 }
 
-.scrollmap.movetop {
+.scrollmap_movetop {
   top: 0px;
   border-radius: 0 0 16px 16px;
 }
 
-.scrollmap.moveleft {
+.scrollmap_moveleft {
   left: 0px;
   border-radius: 0 16px 16px 0;
 }
 
-.scrollmap.moveright {
+.scrollmap_moveright {
   right: 0px;
   border-radius: 16px 0 0 16px;
 }
 
-.scrollmap.movedown {
+.scrollmap_movedown {
   bottom: 0px;
   border-radius: 16px 16px 0 0;
 }
 
-.scrollmap.zoomin, .scrollmap.zoomout {
-  display: block;
+.scrollmap_zoomplus, .scrollmap_zoomminus {
+  display: none;
   position: absolute;
   top: 50%;
   width: 32px;
@@ -129,13 +129,13 @@
 }
 
 @media (hover: none) and (pointer: coarse) {
-  .scrollmap.zoomin {
+  .scrollmap_zoomplus {
     margin-top: 48px;
   }
-  .scrollmap.zoomout {
+  .scrollmap_zoomminus {
     margin-top: 102px;
   }
-  :is(.scrollmap.zoomin, .scrollmap.zoomout, .scrollmap.movetop, .scrollmap.moveleft, .scrollmap.moveright, .scrollmap.movedown)::after {
+  :is(.scrollmap_zoomplus, .scrollmap_zoomminus, .scrollmap_movetop, .scrollmap_moveleft, .scrollmap_moveright, .scrollmap_movedown, .scrollmap_reset)::after {
     content: "";
     position: absolute;
     top: -16px;
@@ -145,13 +145,27 @@
   }
 }
 @media (hover: hover) and (pointer: fine) {
-  .scrollmap.zoomin {
+  .scrollmap_zoomplus {
     margin-top: 20px;
   }
-  .scrollmap.zoomout {
+  .scrollmap_zoomminus {
     margin-top: 52px;
   }
 }
+.scrollmap_reset {
+  display: none;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+  font-size: 30px;
+  overflow: hidden;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  right: 32px;
+  top: 32px;
+  border-radius: 16px;
+}
+
 #map_container {
   position: relative;
   width: 100%;

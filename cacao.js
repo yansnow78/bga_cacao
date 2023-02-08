@@ -50,10 +50,12 @@
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
-				this.scrollmap.bEnableZooming = true;
+				this.scrollmap.bEnablePinchZooming = true;
+				this.scrollmap.bEnableWheelZooming = true;
 				this.scrollmap.setupOnScreenArrows(this.tile_size);
 				this.scrollmap.setupOnScreenZoomButtons(0.2);
-				dojo.connect($('enlargedisplay'), 'onclick', this, 'onIncreaseDisplayHeight');
+				this.scrollmap.setupOnScreenResetButtons();
+				this.scrollmap.setupEnlargeReduceButtons(300, true, 300);
 				/*
 					Setting up player boards
 				*/
@@ -103,7 +105,7 @@
 						dojo.addClass(placedTileId, "last");
 					}
 				}
-				this.scrollmap.scrollToCenter();
+				this.scrollmap.defaultPosition = this.scrollmap.scrollToCenter();
 
 				/*
 					Show two jungle tiles in the display
@@ -488,15 +490,6 @@
 			},
 
 			/*
-				Scrollmap zone extension
-			*/
-			onIncreaseDisplayHeight: function (evt) {
-				evt.preventDefault();
-				var cur_h = toint(dojo.style($('map_container'), 'height'));
-				this.scrollmap.board_y -= 150;
-				dojo.style($('map_container'), 'height', (cur_h + 300) + 'px');
-			},
-			/*
 				Scrollmap zoom
 			*/
 			handleMapZoomChange: function (zoom) {
@@ -516,6 +509,7 @@
 				dojo.stopEvent(event);
 				// this.scrollmap.scroll(0, 0, 0);
 				if (!this.checkAction('selectWorker')) return;
+				this.lockInterface('selectWorker');
 				var tile_id = event.currentTarget.id;
 				if (this.clientStateArgs.place_id == null) {
 					// First selection
@@ -528,6 +522,7 @@
 					this.setClientState("client_selectWorkerLocation", {
 						descriptionmyturn: _('${you} must select a place for the tile'),
 					});
+					this.unlockInterface('selectWorker');
 				} else {
 					// Tile already on board : switch tiles
 					var tile_id_to_switch = this.clientStateArgs.worker_id;
@@ -553,6 +548,7 @@
 						dojo.style(tile_id_to_switch, 'transform', 'rotate(0deg)');
 						this.showRotateLink(tile_id);
 						dojo.connect($(tile_id_to_switch), "onclick", this, "onWorkerTile");
+						this.unlockInterface('selectWorker');
 					}));
 					animation_id.play();
 				}
@@ -563,6 +559,7 @@
 			*/
 			onSelectWorkerPlace: function (event) {
 				if (!this.checkAction('placeWorker')) return;
+				this.lockInterface('placeWorker');
 				var place_id = event.currentTarget.id;
 				dojo.stopEvent(event);
 				this.clientStateArgs.place_id = place_id;
@@ -582,6 +579,7 @@
 						// A worker tile is moved to another place (connect broken for rotate_click ! (?) )
 						dojo.connect($('rotate_click'), "onclick", this, "onRotateCurrent");
 					}
+					this.unlockInterface('placeWorker');
 				}));
 				animation_id.play();
 			},
