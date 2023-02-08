@@ -50,7 +50,7 @@ define([
 
                 var styleElt = document.createElement("style");
                 const styleSheetContent = String.raw`
-                    #${container_div.id}.scrollmap-zoomed{
+                    #${container_div.id}.scrollmap_zoomed{
                         transform:;
                     }
                 `;
@@ -387,7 +387,7 @@ define([
                     this.setScale(this.animation_div, this.zoom);
                 const css = String.raw;
                 const styleSheetContent = css`
-                    #${this.container_div.id} .scrollmap-zoomed{
+                    #${this.container_div.id} .scrollmap_zoomed{
                         transform:scale(${this.zoom});
                     }
                 `;
