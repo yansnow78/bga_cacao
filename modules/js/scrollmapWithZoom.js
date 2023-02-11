@@ -557,8 +557,8 @@ define([
             setupOnScreenZoomButtons: function (zoomDelta) {
                 this.zoomDelta = zoomDelta;
 
-                this._initButton('zoomplus', this.onZoomIn, ()=> {this.changeMapZoom(0.03);});
-                this._initButton('zoomminus', this.onZoomOut, ()=> {this.changeMapZoom(-0.03);});
+                this._initButton('zoomplus', this.onZoomIn, ()=> {this.changeMapZoom(0.02);});
+                this._initButton('zoomminus', this.onZoomOut, ()=> {this.changeMapZoom(-0.02);});
 
                 //this.showOnScreenZoomButtons();
 
