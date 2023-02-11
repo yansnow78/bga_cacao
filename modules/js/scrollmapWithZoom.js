@@ -3,10 +3,11 @@
  * Code by yannsnow
  * */
 
+// import { testlog } from '"./modules/js/testclass"';
 define([
-    "dojo", "dojo/_base/declare"
+    "dojo", "dojo/_base/declare", g_gamethemeurl+"modules/js/long_press_event.js"//g_gamethemeurl + "modules/js/testclass.js"
 ],
-    function (dojo, declare) {
+    function (dojo, declare, long_press_event) {
         return declare("ebg.scrollmapWithZoom", null, {
             constructor: function () {
                 this.container_div = null;
@@ -35,11 +36,31 @@ define([
                 this._scrollDeltaAlignWithZoom = 0;
                 this._pointers = [];
                 this._classNameSuffix = '';
+                this.bDetectLongPress = true;
+                this.bLongPress = true;
+                this._longPress =  null;
+                // this._longPressAnim = {
+                //     prev: 0,
+                //     requestId: requestAnimationFrame(
+                //         function anim(time) {
+                //             console.log("anim");
+                //             this.scroll(0, scrollX, scrollY);
+                //             requestAnimationFrame(anim);
+                //         }
+                //     )
+                // };
+                // this._longPressTimer = false;
+                // this._longPressTimeout = 500;
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
                 console.log("ebg.scrollmapWithZoom create");
+                //var testclass = dojo.require("./modules/js/testclass");
+                // console.log(testclass);
+                // console.log(testclass.teststr);
+                // testclass.testlog();
+
                 this.page = page;
                 this.container_div = container_div;
                 this.scrollable_div = scrollable_div;
@@ -404,6 +425,48 @@ define([
                 dojo.style($(elemId), 'transform', 'scale(' + scale + ')');
             },
 
+            _getButton: function (btnName){
+                var $btn = document.querySelector('#' + this.container_div.id + ' .'+this._classNameSuffix+btnName);
+                if ($btn === null)
+                    $btn = $(btnName);
+                return $btn;
+            },
+
+            _initButton: function (btnName, onClick, onLongPressedAnim){
+                var $btn = this._getButton(btnName);
+                if ($btn === null)
+                    return;
+                dojo.connect($btn, 'onclick', this, onClick);
+                dojo.style($btn, 'cursor', 'pointer');
+                dojo.style($btn, 'display', 'block');
+                if (this.bLongPress){
+                    $btn.setAttribute("data-long-press-delay", 500);
+                    $btn.addEventListener('long-press', this._onButtonLongPress.bind(this,onLongPressedAnim));
+                    $btn.addEventListener('long-press-end', this._onButtonLongPressEnd.bind(this));
+                }
+            },
+
+
+            _onButtonLongPress: function (onLongPressedAnim, evt) {
+                // console.log("onButtonLongPress");
+                // console.log(onLongPressedAnim);
+                // console.log(evt);
+                this._longPressAnim = (time, anim=onLongPressedAnim) => {
+                    anim();
+                    if (this._longPress)
+                        requestAnimationFrame(this._longPressAnim);
+                };
+                this._longPress = true;
+                evt.preventDefault();
+                requestAnimationFrame(this._longPressAnim);
+            },
+
+            _onButtonLongPressEnd: function (evt) {
+                //this.onMoveTop();
+                //console.log("onButtonLongPressEnd");
+                this._longPress = false;
+            },
+
             //////////////////////////////////////////////////
             //// Scroll with buttons
 
@@ -416,46 +479,28 @@ define([
                 else
                     this._scrollDeltaAlignWithZoom = scrollDelta;
 
-                // Old controls - for compatibility
-                if ($('movetop')) {
-                    dojo.connect($('movetop'), 'onclick', this, 'onMoveTop');
-                }
-                if ($('moveleft')) {
-                    dojo.connect($('moveleft'), 'onclick', this, 'onMoveLeft');
-                }
-                if ($('moveright')) {
-                    dojo.connect($('moveright'), 'onclick', this, 'onMoveRight');
-                }
-                if ($('movedown')) {
-                    dojo.connect($('movedown'), 'onclick', this, 'onMoveDown');
-                }
-
-                // New controls
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movetop').connect('onclick', this, 'onMoveTop').style('cursor', 'pointer').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movedown').connect('onclick', this, 'onMoveDown').style('cursor', 'pointer').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveleft').connect('onclick', this, 'onMoveLeft').style('cursor', 'pointer').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveright').connect('onclick', this, 'onMoveRight').style('cursor', 'pointer').style('display', 'block');
-
-                this.showOnScreenArrows();
+                this._initButton('movetop', this.onMoveTop, ()=> {this.scroll(0, 3, 0, 0);});
+                this._initButton('movedown', this.onMoveDown, ()=> {this.scroll(0, -3, 0, 0);});
+                this._initButton('moveleft', this.onMoveLeft, ()=> {this.scroll(3, 0, 0, 0 );});
+                this._initButton('moveright', this.onMoveRight,()=> {this.scroll(-3, 0, 0, 0 );});
             },
 
             showOnScreenArrows: function () {
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movetop').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveleft').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveright').style('display', 'block');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movedown').style('display', 'block');
+                dojo.style(this._getButton('movetop'),'display', 'block');
+                dojo.style(this._getButton('moveleft'),'display', 'block');
+                dojo.style(this._getButton('moveright'),'display', 'block');
+                dojo.style(this._getButton('movedown'),'display', 'block');
             },
 
             hideOnScreenArrows: function () {
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movetop').style('display', 'none');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveleft').style('display', 'none');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'moveright').style('display', 'none');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'movedown').style('display', 'none');
+                dojo.style(this._getButton('movetop'),'display', 'none');
+                dojo.style(this._getButton('moveleft'),'display', 'none');
+                dojo.style(this._getButton('moveright'),'display', 'none');
+                dojo.style(this._getButton('movedown'),'display', 'none');
             },
 
             onMoveTop: function (evt) {
-                // console.log("onMoveTop");
-                evt.preventDefault();
+                //console.log("onMoveTop");
                 this.scroll(0, this._scrollDeltaAlignWithZoom);
             },
 
@@ -512,18 +557,10 @@ define([
             setupOnScreenZoomButtons: function (zoomDelta) {
                 this.zoomDelta = zoomDelta;
 
-                // Old controls - for compatibility
-                if ($('zoomplus')) {
-                    dojo.connect($('zoomplus'), 'onclick', this, 'onZoomIn');
-                }
-                if ($('zoomminus')) {
-                    dojo.connect($('zoomminus'), 'onclick', this, 'onZoomOut');
-                }
+                this._initButton('zoomplus', this.onZoomIn, ()=> {this.changeMapZoom(0.03);});
+                this._initButton('zoomminus', this.onZoomOut, ()=> {this.changeMapZoom(-0.03);});
 
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'zoomplus').connect('onclick', this, 'onZoomIn').style('cursor', 'pointer');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'zoomminus').connect('onclick', this, 'onZoomOut').style('cursor', 'pointer');
-
-                this.showOnScreenZoomButtons();
+                //this.showOnScreenZoomButtons();
 
             },
 
