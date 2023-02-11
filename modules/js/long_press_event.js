@@ -141,13 +141,14 @@
 
         if (!allowClickEvent) {
             // suppress the next click event if e.preventDefault() was called in long-press handler
-            // document.addEventListener('click', function suppressEvent(e) {
-            //     document.removeEventListener('click', suppressEvent, true);
-            //     cancelEvent(e);
-            // }, true);
-            document.addEventListener('pointerup', function suppressEvent(e) {
-                document.removeEventListener('pointerup', suppressEvent, true);
+            var suppressClickEvent = function suppressCLickEvent(e) {
+                document.removeEventListener('click', suppressClickEvent, true);
                 cancelEvent(e);
+            }; 
+            document.addEventListener('click', suppressClickEvent, true);
+            document.addEventListener('touchstart', function suppressEvents(e) {
+                document.removeEventListener('touchstart', suppressEvents, true);
+                document.removeEventListener('click', suppressClickEvent, true);
             }, true);
         }
         this.addEventListener(mouseLeave, clearLongPressTimer, true);
