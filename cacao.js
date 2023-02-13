@@ -52,7 +52,8 @@
 				*/
 				this.scrollmap.bEnablePinchZooming = true;
 				this.scrollmap.bEnableWheelZooming = true;
-				this.scrollmap.setupOnScreenArrows(this.tile_size);
+				this.scrollmap.bEnableLongPress = true;
+				this.scrollmap.setupOnScreenArrows(this.tile_size, true);
 				this.scrollmap.minZoom = 0.2;
 				this.scrollmap.setupOnScreenZoomButtons(0.2);
 				this.scrollmap.setupOnScreenResetButtons();

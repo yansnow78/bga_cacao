@@ -5,9 +5,9 @@
 
 // import { testlog } from '"./modules/js/testclass"';
 define([
-    "dojo", "dojo/_base/declare", g_gamethemeurl+"modules/js/long_press_event.js"//g_gamethemeurl + "modules/js/testclass.js"
+    "dojo", "dojo/_base/declare" , "./long-press-event"
 ],
-    function (dojo, declare, long_press_event) {
+    function (dojo, declare) {
         return declare("ebg.scrollmapWithZoom", null, {
             constructor: function () {
                 this.container_div = null;
@@ -36,30 +36,13 @@ define([
                 this._scrollDeltaAlignWithZoom = 0;
                 this._pointers = [];
                 this._classNameSuffix = '';
-                this.bDetectLongPress = true;
-                this.bLongPress = true;
+                this.bEnableLongPress = true;
                 this._longPress =  null;
-                // this._longPressAnim = {
-                //     prev: 0,
-                //     requestId: requestAnimationFrame(
-                //         function anim(time) {
-                //             console.log("anim");
-                //             this.scroll(0, scrollX, scrollY);
-                //             requestAnimationFrame(anim);
-                //         }
-                //     )
-                // };
-                // this._longPressTimer = false;
-                // this._longPressTimeout = 500;
                 this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
                 console.log("ebg.scrollmapWithZoom create");
-                //var testclass = dojo.require("./modules/js/testclass");
-                // console.log(testclass);
-                // console.log(testclass.teststr);
-                // testclass.testlog();
 
                 this.page = page;
                 this.container_div = container_div;
@@ -439,13 +422,15 @@ define([
                 dojo.connect($btn, 'onclick', this, onClick);
                 dojo.style($btn, 'cursor', 'pointer');
                 dojo.style($btn, 'display', 'block');
-                if (this.bLongPress){
+                if (this.bEnableLongPress){
                     $btn.setAttribute("data-long-press-delay", 500);
                     $btn.addEventListener('long-press', this._onButtonLongPress.bind(this,onLongPressedAnim));
                     $btn.addEventListener('long-press-end', this._onButtonLongPressEnd.bind(this));
                 }
             },
 
+            //////////////////////////////////////////////////
+            //// Long press handling on buttons
 
             _onButtonLongPress: function (onLongPressedAnim, evt) {
                 // console.log("onButtonLongPress");
