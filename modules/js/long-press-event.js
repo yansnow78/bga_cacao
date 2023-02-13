@@ -146,8 +146,8 @@
                 cancelEvent(e);
             }; 
             document.addEventListener('click', suppressClickEvent, true);
-            document.addEventListener('touchstart', function suppressEvents(e) {
-                document.removeEventListener('touchstart', suppressEvents, true);
+            document.addEventListener(mouseDown, function suppressEvents(e) {
+                document.removeEventListener(mouseDown, suppressEvents, true);
                 document.removeEventListener('click', suppressClickEvent, true);
             }, true);
         }
