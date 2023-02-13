@@ -3,11 +3,6 @@
 <div id="map_container" class="scrollmap_container">
 </div>
 
-<div id="map_footer" class="whiteblock">
-	<a href="#" id="enlargedisplay">↓  {LABEL_ENLARGE_DISPLAY}  ↓</a>
-	<a href="#" id="reducedisplay">↑ {LABEL_REDUCE_DISPLAY} ↑</a>
-</div>
-
 <script type="text/javascript">
 
 var jstpl_jungle = '<div id="${id}" class="tile jungle tile_${type}" tile="${type}" card-id="${card_id}"></div>';

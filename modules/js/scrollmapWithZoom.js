@@ -100,8 +100,16 @@ define([
                 var onsurface_div = container_div.querySelector('.scrollmap_onsurface');
                 var clipped_div = container_div.querySelector('.scrollmap_overflow_clipped');
                 var animation_div = container_div.querySelector('.scrollmap_anim');
-                //container_div.innerHTML = tmpl;
-                //this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page);
+
+                const LABEL_ENLARGE_DISPLAY = _("Enlarge display");
+                const LABEL_REDUCE_DISPLAY = _("Reduce display");
+                tmpl = String.raw`
+                <div id="${container_div.id}_footer" class="whiteblock scrollmap_footer">
+                    <a href="#" id="enlargedisplay">↓  ${LABEL_ENLARGE_DISPLAY}  ↓</a>
+                    <a href="#" id="reducedisplay">↑ ${LABEL_REDUCE_DISPLAY} ↑</a>
+                </div>`;
+
+                dojo.place(tmpl, container_div, "after");
                 this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page, create_extra);
             },
 

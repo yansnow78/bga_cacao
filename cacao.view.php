@@ -39,9 +39,6 @@
 
         /*********** Place your code below:  ************/
 
-		$this->tpl['LABEL_ENLARGE_DISPLAY'] = self::_("Enlarge display");
-        $this->tpl['LABEL_REDUCE_DISPLAY'] = self::_("Reduce display");
-
         /*
         
         // Examples: set the value of some element defined in your tpl file like this: {MY_VARIABLE_ELEMENT}
