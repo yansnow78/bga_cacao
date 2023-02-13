@@ -67,7 +67,7 @@ define([
                     create_extra(this);
 
                 dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
-                dojo.connect(this.container_div, 'onwheel', this, 'onWheel');
+                this.container_div.addEventListener('wheel', this.onWheel.bind(this),{ passive: false });
 
                 if (this.defaultZoom === null)
                     this.defaultZoom=this.zoom;
@@ -105,11 +105,11 @@ define([
                 const LABEL_REDUCE_DISPLAY = _("Reduce display");
                 tmpl = String.raw`
                 <div id="${container_div.id}_footer" class="whiteblock scrollmap_footer">
-                    <a href="#" id="enlargedisplay">↓  ${LABEL_ENLARGE_DISPLAY}  ↓</a>
-                    <a href="#" id="reducedisplay">↑ ${LABEL_REDUCE_DISPLAY} ↑</a>
+                    <a class="scrollmap_enlargedisplay">↓  ${LABEL_ENLARGE_DISPLAY}  ↓</a>
+                    <a class="scrollmap_reducedisplay">↑ ${LABEL_REDUCE_DISPLAY} ↑</a>
                 </div>`;
 
-                dojo.place(tmpl, container_div, "after");
+                dojo.place(tmpl, container_div, "before");
                 this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page, create_extra);
             },
 
@@ -416,21 +416,23 @@ define([
                 dojo.style($(elemId), 'transform', 'scale(' + scale + ')');
             },
 
-            _getButton: function (btnName){
-                var $btn = document.querySelector('#' + this.container_div.id + ' .'+this._classNameSuffix+btnName);
+            _getButton: function (btnName, idSuffix=""){
+                var $btn = document.querySelector('#' + this.container_div.id+idSuffix + ' .'+this._classNameSuffix+btnName);
+                console.log($btn);
+                console.log('#' + this.container_div.id+idSuffix + ' .'+this._classNameSuffix+btnName);
                 if ($btn === null)
                     $btn = $(btnName);
                 return $btn;
             },
 
-            _initButton: function (btnName, onClick, onLongPressedAnim){
-                var $btn = this._getButton(btnName);
+            _initButton: function (btnName, onClick, onLongPressedAnim = null, idSuffix="", display='block'){
+                var $btn = this._getButton(btnName, idSuffix);
                 if ($btn === null)
                     return;
-                dojo.connect($btn, 'onclick', this, onClick);
+                $btn.addEventListener( 'click', onClick.bind(this));
                 dojo.style($btn, 'cursor', 'pointer');
-                dojo.style($btn, 'display', 'block');
-                if (this.bEnableLongPress){
+                dojo.style($btn, 'display', display);
+                if (this.bEnableLongPress && onLongPressedAnim != null){
                     $btn.setAttribute("data-long-press-delay", 500);
                     $btn.addEventListener('long-press', this._onButtonLongPress.bind(this,onLongPressedAnim));
                     $btn.addEventListener('long-press-end', this._onButtonLongPressEnd.bind(this));
@@ -442,8 +444,6 @@ define([
 
             _onButtonLongPress: function (onLongPressedAnim, evt) {
                 // console.log("onButtonLongPress");
-                // console.log(onLongPressedAnim);
-                // console.log(evt);
                 this._longPressAnim = (time, anim=onLongPressedAnim) => {
                     anim();
                     if (this._longPress)
@@ -607,38 +607,30 @@ define([
             //////////////////////////////////////////////////
             //// Increase/decrease display height with buttons
             setupEnlargeReduceButtons: function (incrHeightDelta, incrHeightKeepInPos, minHeight) {
-                // Old controls - for compatibility
-                if ($('enlargedisplay')) {
-                    dojo.connect($('enlargedisplay'), 'onclick', this, 'onIncreaseDisplayHeight');
-                }
-                if ($('reducedisplay')) {
-                    dojo.connect($('reducedisplay'), 'onclick', this, 'onDecreaseDisplayHeight');
-                }
-                
+                this._initButton('enlargedisplay', this.onIncreaseDisplayHeight, ()=> {this.changeDisplayHeight(5);}, "_footer", "contents");
+                this._initButton('reducedisplay', this.onDecreaseDisplayHeight, ()=> {this.changeDisplayHeight(-5);}, "_footer", "contents");
+
                 this.incrHeightDelta = incrHeightDelta;
                 this.incrHeightKeepInPos = incrHeightKeepInPos;
                 this.minHeight = minHeight;
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'enlargedisplay').connect('onclick', this, 'onIncreaseDisplayHeight').style('cursor', 'pointer');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'reducedisplay').connect('onclick', this, 'onDecreaseDisplayHeight').style('cursor', 'pointer');
             },
 
             onIncreaseDisplayHeight: function(evt) {
                 evt.preventDefault();
-
-                var current_height = toint(dojo.style($('map_container'), 'height'));
-                if (this.incrHeightKeepInPos)
-                    this.board_y -= this.incrHeightDelta/2;
-                dojo.style($('map_container'), 'height', (current_height + this.incrHeightDelta) + 'px');
+                this.changeDisplayHeight(this.incrHeightDelta);
             },
 
             onDecreaseDisplayHeight: function(evt) {
                 evt.preventDefault();
+                this.changeDisplayHeight(- this.incrHeightDelta);
+            },
 
+            changeDisplayHeight: function(delta) {
                 var current_height = toint(dojo.style($('map_container'), 'height'));
-                var new_height = Math.max((current_height - this.incrHeightDelta), this.minHeight);
+                var new_height = Math.max((current_height + delta), this.minHeight);
                 if (this.incrHeightKeepInPos)
                     this.board_y += (current_height-new_height)/2;
                 dojo.style($('map_container'), 'height', new_height + 'px');
-            },
+            },        
         });
     });
