@@ -169,6 +169,29 @@
   text-align: center;
 }
 
+.scrollmap_enlargedisplay,
+.scrollmap_reducedisplay {
+  display: none;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+}
+
+.scrollmap_container .scrollmap_enlargedisplay {
+  display: none;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+  left: calc(50% + 32px);
+  top: 0px;
+}
+
+.scrollmap_container .scrollmap_reducedisplay {
+  display: none;
+  position: absolute;
+  background-color: rgba(255, 255, 255, 0.5);
+  right: calc(50% + 32px);
+  top: 0px;
+}
+
 #map_container {
   position: relative;
   width: 100%;

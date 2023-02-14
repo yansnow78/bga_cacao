@@ -38,7 +38,8 @@ define([
                 this._classNameSuffix = '';
                 this.bEnableLongPress = true;
                 this._longPress =  null;
-                this.resizeObserver = new ResizeObserver(this.onResize.bind(this));
+                this._bEnlargeReduceButtonsInsideMap=false;
+                this._resizeObserver = new ResizeObserver(this.onResize.bind(this));
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
@@ -73,11 +74,20 @@ define([
                     this.defaultZoom=this.zoom;
                 this.setMapZoom(this.defaultZoom);
                 this.scrollto(0, 0);
-                this.resizeObserver.observe(this.container_div);
+                this._resizeObserver.observe(this.container_div);
             },
 
-            createCompletely: function (container_div, page=null, create_extra=null) {
+            createCompletely: function (container_div, page=null, create_extra=null, bEnlargeReduceButtonsInsideMap=true) {
                 console.log("createCompletely");
+                const LABEL_ENLARGE_DISPLAY = _("Enlarge display");
+                const LABEL_REDUCE_DISPLAY = _("Reduce display");
+                this._bEnlargeReduceButtonsInsideMap = bEnlargeReduceButtonsInsideMap;
+
+                var tmplDisplayButtons = String.raw`
+                    <a class="scrollmap_enlargedisplay">↓  ${LABEL_ENLARGE_DISPLAY}  ↓</a>
+                    <a class="scrollmap_reducedisplay">↑ ${LABEL_REDUCE_DISPLAY} ↑</a>
+                `;
+
                 var tmpl = String.raw`
                     <div class="scrollmap_overflow_clipped">
                         <div class="scrollmap_scrollable"></div>
@@ -91,6 +101,7 @@ define([
                     <i class="scrollmap_zoomplus fa fa-search-plus scrollmap_centericon"></i>
                     <i class="scrollmap_zoomminus fa fa-search-minus scrollmap_centericon"></i>
                     <i class="scrollmap_reset fa fa-refresh scrollmap_centericon"></i>
+                    ${bEnlargeReduceButtonsInsideMap?tmplDisplayButtons:``}
                     <div class="scrollmap_anim"></div>
                 `;
                 this._classNameSuffix = 'scrollmap_';
@@ -101,15 +112,15 @@ define([
                 var clipped_div = container_div.querySelector('.scrollmap_overflow_clipped');
                 var animation_div = container_div.querySelector('.scrollmap_anim');
 
-                const LABEL_ENLARGE_DISPLAY = _("Enlarge display");
-                const LABEL_REDUCE_DISPLAY = _("Reduce display");
-                tmpl = String.raw`
-                <div id="${container_div.id}_footer" class="whiteblock scrollmap_footer">
-                    <a class="scrollmap_enlargedisplay">↓  ${LABEL_ENLARGE_DISPLAY}  ↓</a>
-                    <a class="scrollmap_reducedisplay">↑ ${LABEL_REDUCE_DISPLAY} ↑</a>
-                </div>`;
+                if (!bEnlargeReduceButtonsInsideMap){
+                    tmpl = String.raw`
+                    <div id="${container_div.id}_footer" class="whiteblock scrollmap_footer">
+                        ${tmplDisplayButtons}
+                    </div>`;
 
-                dojo.place(tmpl, container_div, "before");
+                    dojo.place(tmpl, container_div, "before");
+                }
+
                 this.create(container_div, scrollable_div, surface_div, onsurface_div, clipped_div, animation_div, page, create_extra);
             },
 
@@ -187,6 +198,9 @@ define([
 
             onPointerDown: function (ev) {
                 if (!this.bEnableScrolling && !this.bEnablePinchZooming)
+                    return;
+                console.log(ev.button);
+                if ((ev.pointerType ="mouse") && (ev.button != 0)) //for mouse only accept left button
                     return;
                 if (this._pointers.length == 0) {
                     this.onpointermove_handler = dojo.connect(document, "onpointermove", this, "onPointerMove");
@@ -418,8 +432,8 @@ define([
 
             _getButton: function (btnName, idSuffix=""){
                 var $btn = document.querySelector('#' + this.container_div.id+idSuffix + ' .'+this._classNameSuffix+btnName);
-                console.log($btn);
-                console.log('#' + this.container_div.id+idSuffix + ' .'+this._classNameSuffix+btnName);
+                //console.log($btn);
+                //console.log('#' + this.container_div.id+idSuffix + ' .'+this._classNameSuffix+btnName);
                 if ($btn === null)
                     $btn = $(btnName);
                 return $btn;
@@ -607,8 +621,12 @@ define([
             //////////////////////////////////////////////////
             //// Increase/decrease display height with buttons
             setupEnlargeReduceButtons: function (incrHeightDelta, incrHeightKeepInPos, minHeight) {
-                this._initButton('enlargedisplay', this.onIncreaseDisplayHeight, ()=> {this.changeDisplayHeight(5);}, "_footer", "contents");
-                this._initButton('reducedisplay', this.onDecreaseDisplayHeight, ()=> {this.changeDisplayHeight(-5);}, "_footer", "contents");
+                var idSuffix="", display='block';
+                if (!this._bEnlargeReduceButtonsInsideMap){
+                    idSuffix="_footer", display='contents';
+                }
+                this._initButton('enlargedisplay', this.onIncreaseDisplayHeight, ()=> {this.changeDisplayHeight(5);}, idSuffix, display);
+                this._initButton('reducedisplay', this.onDecreaseDisplayHeight, ()=> {this.changeDisplayHeight(-5);}, idSuffix, display);
 
                 this.incrHeightDelta = incrHeightDelta;
                 this.incrHeightKeepInPos = incrHeightKeepInPos;
