@@ -9,8 +9,8 @@
  *
  * cacao.js
  */
- define([
-	"dojo", "dojo/_base/declare", 
+define([
+	"dojo", "dojo/_base/declare",
 	'./modules/js/scrollmapWithZoom',
 	'./modules/js/core_patch',
 	"ebg/core/gamegui",
@@ -18,7 +18,7 @@
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch] , {
+		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;
@@ -36,7 +36,7 @@
 				// Set mobile viewport for portrait orientation based on gameinfos.inc.php
 				//this.default_viewport = this.interface_min_width; /*"width=740px" +  */
 				this.onScreenWidthChange();
-				
+
 				/*
 					Create scrollmap
 				*/
@@ -134,15 +134,17 @@
 				// Setup game notifications to handle (see "setupNotifications" method below)
 				this.setupNotifications();
 
+                // User preferences
+                this.setupUserPreferences();
 			},
 
-			setViewPort : function () {
+			setViewPort: function () {
 				var agent = navigator.userAgent.toLowerCase();
-				if ((agent.indexOf('firefox') >= 0) || (agent.indexOf("fxios") >= 0)){
-					this.interface_min_width=500;
+				if ((agent.indexOf('firefox') >= 0) || (agent.indexOf("fxios") >= 0)) {
+					this.interface_min_width = 500;
 					if (screen.width < this.interface_min_width) {
 						var viewport = document.getElementsByName("viewport")[0];
-						viewport.setAttribute("content", "width="+this.interface_min_width+"");
+						viewport.setAttribute("content", "width=" + this.interface_min_width + "");
 					}
 					// // viewport.setAttribute("content", "width=740");//+this.interface_min_width+
 					// if (viewport === null) {
@@ -159,7 +161,7 @@
 					// }
 				}
 			},
-			
+
 			onScreenWidthChange: function () {
 				this.setViewPort();
 				// Remove broken "zoom" property added by BGA framework
@@ -168,6 +170,53 @@
 				// $("page-content").style.setProperty("transform","scale("+this.gameinterface_zoomFactor+")");
 				// $("page-title").style.removeProperty("zoom");
 				// $("right-side-first-part").style.removeProperty("zoom");
+			},
+
+			///////////////////////////////////////////////////
+			//// User preferences
+
+			setupUserPreferences: function () {
+				// Call onPreferenceChange() when any value changes
+				var onchange = (e) => {
+					const match = e.target.id.match(/^preference_[cf]ontrol_(\d+)$/);
+					if (!match) {
+						return;
+					}
+					const pref = match[1];
+					const newValue = e.target.value;
+					this.prefs[pref].value = newValue;
+					this.onPreferenceChange(pref, newValue);
+				};
+				dojo.query('.preference_control').on('change', onchange);
+
+				// Call onPreferenceChange() now to initialize the setup
+				dojo.forEach(
+					dojo.query("#ingame_menu_content .preference_control"),
+					function(el) {
+						onchange({
+							target: el
+						});
+					}
+				);
+			},
+
+			onPreferenceChange: function (prefId, prefValue) {
+				console.log("Preference changed", prefId, prefValue);
+                // Preferences that change display
+                switch (prefId) {
+                    // Zoom with scroll wheel
+                    case "100":
+						this.scrollmap.bEnableWheelZooming = +prefValue;
+						break;
+
+					case "101":
+						this.scrollmap.bEnablePinchZooming = +prefValue;
+						break;
+
+					case "102":
+						this.scrollmap.bEnablePointerScrolling = +prefValue;
+						break;				
+				}
 			},
 			///////////////////////////////////////////////////
 			//// Game & client states
@@ -838,14 +887,14 @@
 						// Sometimes the tile is misplaced
 						setTimeout(function (second_tile_id, second_to_left, second_to_top) {
 							dojo.attr(second_tile_id, 'style', "left: " + second_to_left + "px; top: " + second_to_top + "px;");
-						}, this.anim_duration+500, second_tile_id, second_to_left, second_to_top);
+						}, this.anim_duration + 500, second_tile_id, second_to_left, second_to_top);
 					}
 				}));
 				animation_id.play();
 				// Sometimes the tile is misplaced
 				setTimeout(function (first_tile_id, first_to_left, first_to_top) {
 					dojo.attr(first_tile_id, 'style', "left: " + first_to_left + "px; top: " + first_to_top + "px;");
-				}, this.anim_duration+500, first_tile_id, first_to_left, first_to_top);
+				}, this.anim_duration + 500, first_tile_id, first_to_left, first_to_top);
 			},
 
 			notif_zombieJungle: function (notif) {

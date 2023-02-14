@@ -23,7 +23,35 @@
  * !! It is not a good idea to modify this file when a game is running !!
  *
  */
-
+$game_preferences = [
+    100 => array(
+        'name' => totranslate('Zoom with scroll wheel'),
+        'needReload' => false, // after user changes this preference game interface would auto-reload
+        'values' => array(
+                0 => array( 'name' => totranslate( 'Off' )),
+                1 => array( 'name' => totranslate( 'On' )),
+        ),
+        'default' => 1
+    ),
+    101 => array(
+        'name' => totranslate('Pinch to zoom'),
+        'needReload' => false, // after user changes this preference game interface would auto-reload
+        'values' => array(
+                0 => array( 'name' => totranslate( 'Off' )),
+                1 => array( 'name' => totranslate( 'On' )),
+        ),
+        'default' => 1
+    ),
+    102 => array(
+        'name' => totranslate('Scroll/Pan with mouse/gesture'),
+        'needReload' => false, // after user changes this preference game interface would auto-reload
+        'values' => array(
+                0 => array( 'name' => totranslate( 'Off' )),
+                1 => array( 'name' => totranslate( 'On' )),
+        ),
+        'default' => 1
+    )
+];
 $game_options = array(
 
     /*

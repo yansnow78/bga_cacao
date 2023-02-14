@@ -26,6 +26,7 @@ define([
                 this.defaultPosition = {x: 0,y: 0};
                 this._prevZoom = 1;
                 this.bEnableScrolling = true;
+                this.bEnablePointerScrolling = true;
                 this.zoomPinchDelta = 0.005;
                 this.zoomWheelDelta = 0.001;
                 this.bEnablePinchZooming = false;
@@ -197,7 +198,7 @@ define([
             },
 
             onPointerDown: function (ev) {
-                if (!this.bEnableScrolling && !this.bEnablePinchZooming)
+                if (!(this.bEnableScrolling && this.bEnablePointerScrolling) && !this.bEnablePinchZooming)
                     return;
                 console.log(ev.button);
                 if ((ev.pointerType ="mouse") && (ev.button != 0)) //for mouse only accept left button
@@ -211,14 +212,14 @@ define([
             },
 
             onPointerMove: function (ev) {
-                if ((!this.bEnableScrolling && !this.bEnablePinchZooming))
+                if ((!(this.bEnableScrolling && this.bEnablePointerScrolling) && !this.bEnablePinchZooming))
                     return;
                 ev.preventDefault();
                 const prevEv = this._addPointer(ev);
 
                 // If one pointer is move, drag the map
                 if (this._pointers.length === 1) {
-                    if (!this.bEnableScrolling)
+                    if (!(this.bEnableScrolling && this.bEnablePointerScrolling))
                         return;
                     if ((typeof prevEv !== 'undefined')) {
                         const [x, y] = this._getXYCoord(ev);
