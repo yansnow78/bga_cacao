@@ -29,9 +29,13 @@ $game_preferences = [
         'needReload' => false, // after user changes this preference game interface would auto-reload
         'values' => array(
                 0 => array( 'name' => totranslate( 'Disabled' )),
-                1 => array( 'name' => totranslate( 'Enabled' )),
+                1 => array( 'name' => totranslate( 'Wheel + any or no key' )),
+                2 => array( 'name' => totranslate( 'Wheel only' )),
+                4 => array( 'name' => totranslate( 'Wheel + Ctrl Key' )),
+                8 => array( 'name' => totranslate( 'Wheel + Alt Key' )),
+                16 => array( 'name' => totranslate( 'Wheel + Shift Key' ))
+                //6 => array( 'name' => totranslate( 'Wheel + Meta Key' )),
         ),
-        'default' => 1
     ),
     101 => array(
         'name' => totranslate('Pinch to zoom'),
