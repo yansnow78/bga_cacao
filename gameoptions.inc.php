@@ -28,8 +28,8 @@ $game_preferences = [
         'name' => totranslate('Zoom with scroll wheel'),
         'needReload' => false, // after user changes this preference game interface would auto-reload
         'values' => array(
-                0 => array( 'name' => totranslate( 'Off' )),
-                1 => array( 'name' => totranslate( 'On' )),
+                0 => array( 'name' => totranslate( 'Disabled' )),
+                1 => array( 'name' => totranslate( 'Enabled' )),
         ),
         'default' => 1
     ),
@@ -37,8 +37,8 @@ $game_preferences = [
         'name' => totranslate('Pinch to zoom'),
         'needReload' => false, // after user changes this preference game interface would auto-reload
         'values' => array(
-                0 => array( 'name' => totranslate( 'Off' )),
-                1 => array( 'name' => totranslate( 'On' )),
+                0 => array( 'name' => totranslate( 'Disabled' )),
+                1 => array( 'name' => totranslate( 'Enabled' )),
         ),
         'default' => 1
     ),
@@ -46,8 +46,8 @@ $game_preferences = [
         'name' => totranslate('Scroll/Pan with mouse/gesture'),
         'needReload' => false, // after user changes this preference game interface would auto-reload
         'values' => array(
-                0 => array( 'name' => totranslate( 'Off' )),
-                1 => array( 'name' => totranslate( 'On' )),
+                0 => array( 'name' => totranslate( 'Disabled' )),
+                1 => array( 'name' => totranslate( 'Enabled' )),
         ),
         'default' => 1
     )
