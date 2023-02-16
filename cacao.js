@@ -57,7 +57,8 @@ define([
 				this.scrollmap.minZoom = 0.2;
 				this.scrollmap.setupOnScreenZoomButtons(0.2);
 				this.scrollmap.setupOnScreenResetButtons();
-				this.scrollmap.setupEnlargeReduceButtons(300, true, 300);
+				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
+				this.scrollmap.setupInfoButton();
 				/*
 					Setting up player boards
 				*/
