@@ -194,8 +194,8 @@ define([
             },
 
             _getXYCoord: function (ev, ev2) {
-                const width = dojo.style(this.container_div, "width");
-                const height = dojo.style(this.container_div, "height");
+                // const width = dojo.style(this.container_div, "width");
+                // const height = dojo.style(this.container_div, "height");
                 const containerRect = this.container_div.getBoundingClientRect();
                 var clientX = ev.clientX;
                 var clientY = ev.clientY;
@@ -204,16 +204,16 @@ define([
                     clientY = (clientY + ev2.clientY) / 2;
                 }
 
-                var pageZoom = this._getPageZoom();
-                const x = clientX/pageZoom - containerRect.x - width / 2;
-                const y = clientY/pageZoom - containerRect.y - height / 2;
+                const zoom = this._getPageZoom();
+                var scale = this.page.calcScale(this.container_div);
+                const x = (clientX/zoom - containerRect.x - containerRect.width / 2)/scale;
+                const y = (clientY/zoom - containerRect.y - containerRect.height / 2)/scale;
                 return [x, y];
             },
 
             onPointerDown: function (ev) {
                 if (!(this.bEnableScrolling && this.bEnablePointerScrolling) && !this.bEnablePinchZooming)
                     return;
-                console.log(ev.button);
                 if ((ev.pointerType ="mouse") && (ev.button != 0)) //for mouse only accept left button
                     return;
                 if (this._pointers.length == 0) {
