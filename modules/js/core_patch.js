@@ -9,23 +9,47 @@ function (dojo, declare) {
 
     return declare("ebg.core.core_patch", null, {
         constructor: function(){
-            this.calcScale = true;
+            this.bCalcScale = true;
             console.log('ebg.core.core_patch constructor');
         },
-        
-        _calcScale: function( element ){
-            if (!this.calcScale)
+   
+        calcScale: function( element ){
+            if (!this.bCalcScale)
                 return 1;
-            var matrix = new DOMMatrix(window.getComputedStyle(element).transform);
-            var scale = Math.sqrt(matrix.m11*matrix.m11+ 
-                matrix.m21*matrix.m21+
-                matrix.m31*matrix.m31);
+            var transform = window.getComputedStyle(element).transform;
+            var scale = 1;
+            if (transform !== "none"){
+                var matrix = new DOMMatrix(transform);
+                scale = Math.hypot(matrix.m11, matrix.m12, matrix.m13);
+            }
             var parent = element.parentElement;
             if (parent === null)
                 return scale;
             else
-                return scale*this._calcScale(parent);
+                return scale*this.calcScale(parent);
         },
+
+        // calcScale: function( element ){
+        //     if (!this.bCalcScale)
+        //         return 1;
+        //     var matrix = this.calcTransform(element);
+        //     return matrix ? Math.hypot(matrix.m11, matrix.m12) : 1;
+        // },
+
+        // calcTransform: function( element ){
+        //     var transform = window.getComputedStyle(element).transform;
+        //     var matrix = null;
+        //     if (transform !== "none")
+        //         matrix = new DOMMatrix(transform);
+        //     var parent = element.parentElement;
+        //     if (parent !== null)
+        //         var matrixParent = this.calcTransform(parent);
+        //         if (matrix === null)
+        //             matrix = matrixParent;
+        //         else if (matrixParent !== null)
+        //             matrix.multiplySelf(matrixParent);
+        //     return matrix;
+        // },
 
         // Place an object on another one
         // Note: if it does not work check that:
@@ -65,7 +89,7 @@ function (dojo, declare) {
             var vector = this.vector_rotate( vector_abs, mobile_obj_parent_alpha );
 
             if (typeof scale == 'undefined')
-                scale = this._calcScale(mobile_obj_dom);
+                scale = this.calcScale(mobile_obj_parent);
             left = left+vector.x/scale;
             top = top+ vector.y/scale;
             
@@ -106,7 +130,7 @@ function (dojo, declare) {
             var top = dojo.style( mobile_obj, 'top' );
 
             if (scale === null)
-                scale = this._calcScale(mobile_obj_dom);
+                scale = this.calcScale(mobile_obj_dom.parentNode);
             var vector_abs = {
                 x: (tgt.x-src.x + (tgt.w-src.w)/2)/scale + target_x,
                 y: (tgt.y-src.y + (tgt.h-src.h)/2)/scale + target_y
@@ -167,7 +191,7 @@ function (dojo, declare) {
             var vector = this.vector_rotate( vector_abs, mobile_obj_parent_alpha );
 
             if (typeof scale == 'undefined')
-                scale = this._calcScale(mobile_obj_dom);
+                scale = this.calcScale(mobile_obj_dom.parentNode);
             left = left+vector.x/scale;
             top = top+ vector.y/scale;
 
@@ -232,7 +256,7 @@ function (dojo, declare) {
             var top = dojo.style( mobile_obj, 'top' );
 
             if (typeof scale == 'undefined')
-                scale = this._calcScale(mobile_obj_dom);
+                scale = this.calcScale(mobile_obj_dom.parentNode);
             var vector_abs = {
                 x: (tgt.x-src.x)/scale + toint( target_x ),
                 y: (tgt.y-src.y)/scale + toint( target_y )
@@ -307,7 +331,7 @@ function (dojo, declare) {
             var vector = this.vector_rotate( vector_abs, alpha_new_parent );
 
             if (typeof scale == 'undefined')
-                scale = this._calcScale(new_parent);
+                scale = this.calcScale(new_parent);
             left = left + vector.x/scale;
             top = top + vector.y/scale;
 
