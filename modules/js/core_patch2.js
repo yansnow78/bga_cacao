@@ -10,7 +10,6 @@ function (dojo, declare) {
 
     return declare("ebg.core.core_patch2", null, {
         constructor: function(){
-            this.calcScale = true;
             console.log('ebg.core.core_patch2 constructor');
         },
         
