@@ -60,6 +60,7 @@ define([
 				this.scrollmap.setupOnScreenResetButtons();
 				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
 				this.scrollmap.setupInfoButton();
+				// this.rotateTo($('map_container'), 45);
 				/*
 					Setting up player boards
 				*/
@@ -428,7 +429,8 @@ define([
 					from_zone,
 					to_zone,
 					this.anim_duration,
-					delay
+					delay,
+					direction == 'get' ? null : 1/this.scrollmap.zoom
 				);
 			},
 
@@ -582,7 +584,7 @@ define([
 					// New tile to place...
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
-					this.attachToNewParent(tile_id, this.scrollmap.animation_div);
+					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
 					var anim = this.slideToObject(tile_id, this.clientStateArgs.place_id, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, "tiles_container");
@@ -590,7 +592,7 @@ define([
 					anim.play();
 					// ... and previous tile back in the hand
 					var hand_tiles = "hand_tiles_" + this.player_id;
-					this.attachToNewParent(tile_id_to_switch, hand_tiles);
+					this.attachToNewParent(tile_id_to_switch, hand_tiles, null, true);
 					dojo.removeClass(tile_id_to_switch, "selected");
 					this.rotateTo(tile_id_to_switch, 0);
 					dojo.destroy("rotate_click");
@@ -617,7 +619,7 @@ define([
 				dojo.stopEvent(event);
 				this.clientStateArgs.place_id = place_id;
 				var tile_id = this.clientStateArgs.worker_id;
-				this.attachToNewParent(tile_id, this.scrollmap.animation_div);
+				this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
 				var animation_id = this.slideToObject(tile_id, place_id, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 					console.log(tile_id);
@@ -834,8 +836,8 @@ define([
 							}
 						),
 						"player_board_" + notif.args.player_id);
-					this.attachToNewParent(tile_id, this.scrollmap.animation_div);
-					var anim = this.slideToObjectPos(tile_id, this.scrollmap.animation_div, to_left, to_top, this.anim_duration);
+					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
+					var anim = this.slideToObjectRelPos(tile_id, this.scrollmap.animation_div, to_left, to_top, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, this.scrollmap.scrollable_div);
 					}));
@@ -867,9 +869,9 @@ define([
 				var first_tile_id = notifJungleAdded.args.tile_id;
 				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
 				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
-				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div);
+				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div, null, true);
 				this.jungles_display.removeFromZone(first_tile_id, false, null);
-				var animation_id = this.slideToObjectPos(first_tile_id, this.scrollmap.animation_div, first_to_left, first_to_top, this.anim_duration);
+				var animation_id = this.slideToObjectRelPos(first_tile_id, this.scrollmap.animation_div, first_to_left, first_to_top, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 					dojo.place(first_tile_id, this.scrollmap.scrollable_div);
 					dojo.removeClass(first_tile_id, "selected");
@@ -879,9 +881,9 @@ define([
 						var second_tile_id = notifJungleAdded.args.tile_2_id;
 						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
 						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
-						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div);
+						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div, null, true);
 						this.jungles_display.removeFromZone(second_tile_id, false, null);
-						var anim2 = this.slideToObjectPos(second_tile_id, this.scrollmap.animation_div, second_to_left, second_to_top, this.anim_duration).play();
+						var anim2 = this.slideToObjectRelPos(second_tile_id, this.scrollmap.animation_div, second_to_left, second_to_top, this.anim_duration).play();
 						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
 							dojo.place(second_tile_id, this.scrollmap.scrollable_div);
 						}));
