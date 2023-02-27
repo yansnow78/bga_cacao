@@ -204,7 +204,7 @@ define([
 			},
 
 			onPreferenceChange: function (prefId, prefValue) {
-				console.log("Preference changed", prefId, prefValue);
+				// console.log("Preference changed", prefId, prefValue);
                 // Preferences that change display
                 switch (prefId) {
                     // Zoom with scroll wheel
@@ -405,7 +405,6 @@ define([
 				var from_zone, to_zone, material_parent;
 				if (direction == "get") {
 					if (material == "gold") {
-						// material_parent = "counters_" + player_id;
 						to_zone = $("player_score_" + player_id);
 						material_parent = to_zone.parentNode;
 					} else {
@@ -413,7 +412,7 @@ define([
 						to_zone = material_parent;
 					}
 					from_zone = "jungle_" + card_id;
-					console.log(material_parent, from_zone, to_zone);
+					// console.log(material_parent, from_zone, to_zone);
 				} else {
 					material_parent = this.scrollmap.animation_div;
 					if (material == "gold")
@@ -421,7 +420,7 @@ define([
 					else
 						from_zone = "counter_" + material + "_" + player_id;
 					to_zone = "jungle_" + card_id;
-					console.log(material_parent, from_zone, to_zone);
+					// console.log(material_parent, from_zone, to_zone);
 				}
 				this.slideTemporaryObject(
 					this.format_block("jstpl_material", { 'material': material }),
@@ -622,7 +621,7 @@ define([
 				this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
 				var animation_id = this.slideToObject(tile_id, place_id, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
-					console.log(tile_id);
+					// console.log(tile_id);
 					dojo.place(tile_id, "tiles_container");
 					if (this.gamedatas.gamestate.name != "client_selectWorkerRotate") {
 						// A worker tile is placed on the board for the first time in this player tour
@@ -902,7 +901,7 @@ define([
 			},
 
 			notif_zombieJungle: function (notif) {
-				console.log("notif_zombieJungle");
+				// console.log("notif_zombieJungle");
 			},
 
 			notif_displayNewJungle: function (notif) {
