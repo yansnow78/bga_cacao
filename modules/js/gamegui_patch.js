@@ -8,9 +8,9 @@ define([
 ],
 function (dojo, declare) {
 
-    return declare("ebg.core.core_patch2", null, {
+    return declare("ebg.core.gamegui_patch", null, {
         constructor: function(){
-            console.log('ebg.core.core_patch2 constructor');
+            console.log('ebg.core.gamegui_patch constructor');
         },
         
         addTooltip: function( id, help, action, delay )
