@@ -9,12 +9,9 @@ function (dojo, declare) {
     return declare("ebg.core.core_patch", null, {
         constructor: function(){
             console.log('ebg.core.core_patch constructor');
-            this.bCalcScale = true;
         },
    
         calcScale: function( element ){
-            if (!this.bCalcScale)
-                return 1;
             var transform = window.getComputedStyle(element).transform;
             var scale = 1;
             if (transform !== "none"){
@@ -39,32 +36,6 @@ function (dojo, declare) {
             var transform = window.getComputedStyle(element).transform;
             var matrix = null;
             if (transform !== "none"){
-                // var [tx, ty] = window.getComputedStyle(element).transformOrigin.split(" ");
-
-                // tx = parseFloat(tx);
-                // ty = parseFloat(ty);
-
-                // const eltRect = element.getBoundingClientRect();
-                // var tx2 = tx;
-                // if (tx != 0.0)
-                //     tx2 = eltRect.width*tx/element.offsetWidth;
-                // var ty2 = ty;
-                // if (ty != 0.0)
-                //     ty2 = eltRect.height*ty/element.offsetHeight;
-                // matrix = new DOMMatrix();
-                // matrix.translateSelf(-tx, -ty, 0);
-                // var trMatrix = new DOMMatrix(transform);
-                // matrix.multiplySelf(trMatrix);
-                // matrix.translateSelf(tx, ty, 0);
-
-                // var transformF;
-                // if  (tx != 0.0 && ty != 0.0)
-                //     transformF = `translate(-${tx2}px, -${ty2}px) ${transform} translate(${tx2}px, ${ty2}px)`;
-                // else
-                //     transformF = transform;
-                // console.log(transformF);
-                //console.log(matrix);
-
                 matrix = new DOMMatrix(transform);
             }
             var parent = element.parentElement;
@@ -228,11 +199,36 @@ function (dojo, declare) {
            
         },
 
-        // Return an animation that is moving (slide) a DOM object over another one at the given coordinates
+        // Return an animation that is moving (slide) a DOM object over another one at the given relative coordinates from target_obj
         slideToObjectRelPos: function( mobile_obj, target_obj, target_x, target_y, duration, delay )
         {
             return this._slideToObject( mobile_obj, target_obj, target_x, target_y, true, duration, delay);
             
+        },
+
+        // Return an animation that is moving (slide) a DOM object to a given coordinates (no position calculation done)
+        slideToPos: function( mobile_obj, target, duration, delay )
+        {
+            if( typeof duration == 'undefined' )
+            {    duration = 500;    }
+            if( typeof delay == 'undefined' )
+            {    delay = 0;    }
+
+            if (typeof target == "string")
+                target = $(target);
+            if ((target instanceof Element))
+                target = {
+                    x: target.style.left.replace("px", ""),
+                    y: target.style.top.replace("px", "")
+                  };
+                
+            var anim = dojo.fx.slideTo( {  node: mobile_obj,
+                top: target.y,
+                left: target.x,
+                delay: delay,
+                duration: duration,
+                unit: "px" } );
+            return anim;            
         },
 
         // Attach mobile_obj to a new parent, keeping its absolute position in the screen constant.
@@ -306,6 +302,7 @@ function (dojo, declare) {
             anim.play();
             return anim;
         },
+
     });       
     
   

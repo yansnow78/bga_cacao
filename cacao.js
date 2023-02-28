@@ -584,7 +584,7 @@ define([
 					this.clientStateArgs.worker_id = tile_id;
 					dojo.addClass(tile_id, "selected");
 					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
-					var anim = this.slideToObject(tile_id, this.clientStateArgs.place_id, this.anim_duration);
+					var anim = this.slideToPos(tile_id, this.clientStateArgs.place_id, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, "tiles_container");
 					}));
@@ -595,7 +595,7 @@ define([
 					dojo.removeClass(tile_id_to_switch, "selected");
 					this.rotateTo(tile_id_to_switch, 0);
 					dojo.destroy("rotate_click");
-					var animation_id = this.slideToObject(tile_id_to_switch, hand_tiles, this.anim_duration);
+					var animation_id = this.slideToPos(tile_id_to_switch, {x: 0, y: 0}, this.anim_duration);
 					dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 						dojo.style(tile_id_to_switch, 'top', 'auto');
 						dojo.style(tile_id_to_switch, 'left', 'auto');
@@ -619,7 +619,7 @@ define([
 				this.clientStateArgs.place_id = place_id;
 				var tile_id = this.clientStateArgs.worker_id;
 				this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
-				var animation_id = this.slideToObject(tile_id, place_id, this.anim_duration);
+				var animation_id = this.slideToPos(tile_id, place_id, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 					// console.log(tile_id);
 					dojo.place(tile_id, "tiles_container");
@@ -836,7 +836,7 @@ define([
 						),
 						"player_board_" + notif.args.player_id);
 					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
-					var anim = this.slideToObjectRelPos(tile_id, this.scrollmap.animation_div, to_left, to_top, this.anim_duration);
+					var anim = this.slideToPos(tile_id, {x: to_left, y: to_top}, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, this.scrollmap.scrollable_div);
 					}));
@@ -870,7 +870,7 @@ define([
 				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
 				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div, null, true);
 				this.jungles_display.removeFromZone(first_tile_id, false, null);
-				var animation_id = this.slideToObjectRelPos(first_tile_id, this.scrollmap.animation_div, first_to_left, first_to_top, this.anim_duration);
+				var animation_id = this.slideToPos(first_tile_id, {x: first_to_left, y: first_to_top}, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
 					dojo.place(first_tile_id, this.scrollmap.scrollable_div);
 					dojo.removeClass(first_tile_id, "selected");
@@ -882,7 +882,7 @@ define([
 						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
 						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div, null, true);
 						this.jungles_display.removeFromZone(second_tile_id, false, null);
-						var anim2 = this.slideToObjectRelPos(second_tile_id, this.scrollmap.animation_div, second_to_left, second_to_top, this.anim_duration).play();
+						var anim2 = this.slideToPos(second_tile_id,  {x: second_to_left, y: second_to_top} , this.anim_duration).play();
 						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
 							dojo.place(second_tile_id, this.scrollmap.scrollable_div);
 						}));
