@@ -41,17 +41,17 @@ function (dojo, declare) {
                 var left = parseInt(s.left.slice(0, -2));
                 var top = parseInt(s.top.slice(0, -2));
                 var width = parseInt(s.width.slice(0, -2));
-                s.left = (left*zoom)+'px';
-                s.top = (top*zoom)+'px';
+                s.left = (left * zoom) + (window.scrollX * (1 -zoom)) + 'px';
+                s.top  = (top * zoom)  + (window.scrollY * (1 -zoom)) + 'px';
                 s.width = (width*zoom)+'px';
                 s = dijit._masterTT.connectorNode.style;
                 if (s.top!=""){
                     top = parseInt(s.top.slice(0, -2));
-                    s.top = (top*zoom)+'px';
+                    s.top  = (top * zoom) /* + (window.scrollY * (1 -zoom)) */ + 'px';
                 }
                 if (s.left!=""){
                     left = parseInt(s.left.slice(0, -2));
-                    s.left = (left*zoom)+'px';
+                    s.left = (left * zoom) /* + (window.scrollX * (1 -zoom)) */ + 'px';
                 }
             }
             return onShowTooltip;
