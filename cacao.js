@@ -51,11 +51,10 @@ define([
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
-				this.scrollmap.bEnablePinchZooming = true;
-				this.scrollmap.bEnableWheelZooming = this.scrollmap.wheelZoomingKeys.Any;
-				this.scrollmap.bEnableLongPress = true;
+				//this.scrollmap.bEnableZooming = true;
 				this.scrollmap.setupOnScreenArrows(this.tile_size, true);
 				this.scrollmap.minZoom = 0.2;
+				this.scrollmap.maxZoom = 2;
 				this.scrollmap.setupOnScreenZoomButtons(0.2);
 				this.scrollmap.setupOnScreenResetButtons();
 				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
@@ -206,20 +205,20 @@ define([
 			onPreferenceChange: function (prefId, prefValue) {
 				// console.log("Preference changed", prefId, prefValue);
                 // Preferences that change display
-                switch (prefId) {
-                    // Zoom with scroll wheel
-                    case "100":
-						this.scrollmap.bEnableWheelZooming = +prefValue;
-						break;
+                // switch (prefId) {
+                //     // Zoom with scroll wheel
+                //     case "100":
+				// 		this.scrollmap.bEnableWheelZooming = +prefValue;
+				// 		break;
 
-					case "101":
-						this.scrollmap.bEnablePinchZooming = +prefValue;
-						break;
+				// 	// case "101":
+				// 	// 	this.scrollmap.bEnablePinchZooming = +prefValue;
+				// 	// 	break;
 
-					case "102":
-						this.scrollmap.bEnablePointerScrolling = +prefValue;
-						break;				
-				}
+				// 	// case "102":
+				// 	// 	this.scrollmap.bEnableOneFingerScrolling = +prefValue;
+				// 	// 	break;				
+				// }
 			},
 			///////////////////////////////////////////////////
 			//// Game & client states

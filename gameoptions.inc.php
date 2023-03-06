@@ -24,37 +24,37 @@
  *
  */
 $game_preferences = [
-    100 => array(
-        'name' => totranslate('Zoom with scroll wheel'),
-        'needReload' => false, // after user changes this preference game interface would auto-reload
-        'values' => array(
-                0 => array( 'name' => totranslate( 'Disabled' )),
-                1 => array( 'name' => totranslate( 'Wheel + any or no key' )),
-                2 => array( 'name' => totranslate( 'Wheel only' )),
-                4 => array( 'name' => totranslate( 'Wheel + Ctrl Key' )),
-                8 => array( 'name' => totranslate( 'Wheel + Alt Key' )),
-                16 => array( 'name' => totranslate( 'Wheel + Shift Key' ))
-                //6 => array( 'name' => totranslate( 'Wheel + Meta Key' )),
-        ),
-    ),
-    101 => array(
-        'name' => totranslate('Pinch to zoom'),
-        'needReload' => false, // after user changes this preference game interface would auto-reload
-        'values' => array(
-                0 => array( 'name' => totranslate( 'Disabled' )),
-                1 => array( 'name' => totranslate( 'Enabled' )),
-        ),
-        'default' => 1
-    ),
-    102 => array(
-        'name' => totranslate('Scroll/Pan with mouse/gesture'),
-        'needReload' => false, // after user changes this preference game interface would auto-reload
-        'values' => array(
-                0 => array( 'name' => totranslate( 'Disabled' )),
-                1 => array( 'name' => totranslate( 'Enabled' )),
-        ),
-        'default' => 1
-    )
+    // 100 => array(
+    //     'name' => totranslate('Zoom with scroll wheel'),
+    //     'needReload' => false,
+    //     'values' => array(
+    //             0 => array( 'name' => totranslate( 'Disabled' )),
+    //             1 => array( 'name' => totranslate( 'Wheel + any or no key' )),
+    //             2 => array( 'name' => totranslate( 'Wheel only' )),
+    //             4 => array( 'name' => totranslate( 'Wheel + Ctrl Key' )),
+    //             8 => array( 'name' => totranslate( 'Wheel + Alt Key' )),
+    //             16 => array( 'name' => totranslate( 'Wheel + Shift Key' ))
+    //             //6 => array( 'name' => totranslate( 'Wheel + Meta Key' )),
+    //     ),
+    // ),
+    // 101 => array(
+    //     'name' => totranslate('Pinch to zoom'),
+    //     'needReload' => false,
+    //     'values' => array(
+    //             0 => array( 'name' => totranslate( 'Disabled' )),
+    //             1 => array( 'name' => totranslate( 'Enabled' )),
+    //     ),
+    //     'default' => 1
+    // ),
+    // 102 => array(
+    //     'name' => totranslate('Scroll/Pan with one finger'),
+    //     'needReload' => false,
+    //     'values' => array(
+    //             0 => array( 'name' => totranslate( 'Disabled' )),
+    //             1 => array( 'name' => totranslate( 'Enabled' )),
+    //     ),
+    //     'default' => 0
+    // )
 ];
 $game_options = array(
 
