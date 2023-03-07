@@ -40,7 +40,7 @@ define([
                     Shift: 16,
                     AnyOrNone: 32
                   };
-                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Any, pinchZooming:true};
+                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Disabled, pinchZooming:true};
 
                 this.zoomChangeHandler = null;
                 this.bScrollDeltaAlignWithZoom = true;
@@ -480,7 +480,7 @@ define([
                     // Zoom with scroll wheel
                     case this.wheelZoomingKeys.Disabled:
                         wheelZoom = false;
-                        break;
+                        return;
 
                     case this.wheelZoomingKeys.None:
                         wheelZoom = !(evt.ctrlKey || evt.altKey || evt.metaKey || evt.shiftKey);
@@ -901,7 +901,7 @@ define([
                 this.btnInfo.style.display= 'block';
                 var info =
                     _('To scroll/pan or zoom, you can use the buttons or the mouse or a gesture')+'<BR><BR>'+
-                    _('To scroll/pan: maintain the mouse button or the finger pressed and move it.')+'<BR><BR>'+
+                    _('To scroll/pan: maintain the mouse button or 2 fingers pressed and move.')+'<BR><BR>'+
                     _('To zoom: use the scroll wheel (with a specific or no key) or pinch fingers.')+'<BR><BR>';
                 if (bConfigurableInUserPreference)
                     info += _('This is configurable in user preference.');
