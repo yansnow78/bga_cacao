@@ -51,7 +51,7 @@ define([
 				/*
 					Make map draggable, scrollable and zoomable
 				*/
-				//this.scrollmap.bEnableZooming = true;
+				this.scrollmap.bEnableZooming = true;
 				this.scrollmap.setupOnScreenArrows(this.tile_size, true);
 				this.scrollmap.minZoom = 0.2;
 				this.scrollmap.maxZoom = 2;

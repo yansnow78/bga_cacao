@@ -56,6 +56,7 @@ define([
                 this._onpointerup_handler=null;
                 this._onpointercancel_handler=null;
                 this._onpointerup_handled=false;
+                this._startPoints = new Map();
 
             },
 
@@ -332,13 +333,38 @@ define([
                 // this.container_div.style.touchAction = "auto";
             },
 
+            _getTouchesDist: function(e) {
+                if (e.touches.length==1)
+                    return 0;
+                else
+                    return Math.sqrt(
+                        Math.pow(Math.abs(e.touches[0].clientX - e.touches[1].clientX), 2) +
+                        Math.pow(Math.abs(e.touches[0].clientY - e.touches[1].clientY), 2)
+                    );
+            },
+
+            _getTouchesMiddle: function(e) {
+                if (e.touches.length==1)
+                    return new DOMPoint(e.touches[0].clientX , e.touches[0].clientY);
+                else
+                    return new DOMPoint(
+                        (e.touches[0].clientX + e.touches[1].clientX)/2,
+                        (e.touches[0].clientY + e.touches[1].clientY)/2
+                    );
+            },
+
             _handleTouch: function (e) {
+                // var i, touch;
                 if ((e.type !== "touchmove" && e.type !== "touchstart") || 
                    !((this.bEnableScrolling) || (this.bEnableZooming   && this.zoomingOptions.pinchZooming)))
                 {
                     this._disableInteractions();
                     this.container_div.classList.remove("scrollmap_warning_touch");
                     return;
+                }
+                if (e.type === "touchstart") {
+                    this._startTouchesDist = this._getTouchesDist(e);
+                    this._startTouchesMiddle = this._getTouchesMiddle(e);
                 }
                 if (e.touches.length === 1 && !(this.bEnableScrolling && this.scrollingOptions.oneFingerScrolling)) {
                     this._disableInteractions();
@@ -347,7 +373,25 @@ define([
                 } else {
                     this._enableInteractions();
                     this.container_div.classList.remove("scrollmap_warning_touch");
-                    e.preventDefault();
+                    if (e.type === "touchmove") {
+                        var touchesMiddle = this._getTouchesMiddle(e);
+                        var scrollX = Math.abs(touchesMiddle.x-this._startTouchesMiddle.x);
+                        var scrollY = Math.abs(touchesMiddle.y-this._startTouchesMiddle.y);
+                        var touchesDist = this._getTouchesDist(e);
+                        var touchesDistDiff = Math.abs(touchesDist-this._startTouchesDist);
+                        var zooming = touchesDistDiff > 5 && ((scrollX + scrollY)<touchesDistDiff);
+                        var scrolling = (scrollX + scrollY) > 5 && ((scrollX + scrollY)>touchesDistDiff);
+                        // console.log("touchmove", scrollX+scrollY, scrolling, "   ", touchesDistDiff, zooming);
+
+                        if (scrolling & (this.bEnableScrolling)) {
+                            // console.log("prevent scrolling");
+                            e.preventDefault();
+                        }               
+                        if (zooming & (this.bEnableZooming   && this.zoomingOptions.pinchZooming)) {
+                            // console.log("prevent zooming");
+                            e.preventDefault();
+                        }               
+                    }
                 }
             },
 
@@ -368,6 +412,7 @@ define([
             },
 
             onPointerMove: function (ev) {
+                // console.log("pointer move");
                 const prevEv = this._addPointer(ev);
 
                 // If one pointer is move, drag the map
