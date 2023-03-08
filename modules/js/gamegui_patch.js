@@ -14,7 +14,7 @@ function (dojo, declare) {
         },
 
         _regOnShowTooltip: function(){
-            var gamegui = this;
+            const gamegui = this;
             function onShowTooltip(){
                 const that = this;
                 dijit._masterTT._onHide= function(){
@@ -37,21 +37,21 @@ function (dojo, declare) {
                 if (gamegui.gameinterface_zoomFactor == 1) 
                     return;
                 const zoom = gamegui.gameinterface_zoomFactor;
-                var s = dijit._masterTT.domNode.style;
-                var left = parseInt(s.left.slice(0, -2));
-                var top = parseInt(s.top.slice(0, -2));
-                var width = parseInt(s.width.slice(0, -2));
+                let s = dijit._masterTT.domNode.style;
+                const left = parseInt(s.left.slice(0, -2));
+                const top = parseInt(s.top.slice(0, -2));
+                const width = parseInt(s.width.slice(0, -2));
                 s.left = (left * zoom) + (window.scrollX * (1 -zoom)) + 'px';
                 s.top  = (top * zoom)  + (window.scrollY * (1 -zoom)) + 'px';
                 s.width = (width*zoom)+'px';
                 s = dijit._masterTT.connectorNode.style;
                 if (s.top!=""){
-                    top = parseInt(s.top.slice(0, -2));
-                    s.top  = (top * zoom) /* + (window.scrollY * (1 -zoom)) */ + 'px';
+                    const top2 = parseInt(s.top.slice(0, -2));
+                    s.top  = (top2 * zoom) /* + (window.scrollY * (1 -zoom)) */ + 'px';
                 }
                 if (s.left!=""){
-                    left = parseInt(s.left.slice(0, -2));
-                    s.left = (left * zoom) /* + (window.scrollX * (1 -zoom)) */ + 'px';
+                    const left2 = parseInt(s.left.slice(0, -2));
+                    s.left = (left2 * zoom) /* + (window.scrollX * (1 -zoom)) */ + 'px';
                 }
             }
             return onShowTooltip;
@@ -60,13 +60,26 @@ function (dojo, declare) {
         addTooltip: function( id, help, action, delay )
         {
             this.inherited(arguments);
-            this.tooltips[id].onShow = this._regOnShowTooltip();
+            if ( !this.bHideTooltips )
+                this.tooltips[id].onShow = this._regOnShowTooltip();
         },
       
         addTooltipHtml: function( id, help, action, delay )
         {
             this.inherited(arguments);
-            this.tooltips[id].onShow = this._regOnShowTooltip();
-        },        
+            if ( !this.bHideTooltips )
+                this.tooltips[id].onShow = this._regOnShowTooltip();
+        },
+        switchDisplayTooltips: function( mode )
+        {
+            this.inherited(arguments);
+            if ( !this.bHideTooltips )
+            {
+                // Define onShow callback as empty (show tooltips)
+                for (var i in this.tooltips) {
+                    this.tooltips[i].onShow = this._regOnShowTooltip();
+                }
+            }
+        },
     });
 });
