@@ -11,10 +11,9 @@ function (dojo, declare) {
     return declare("ebg.core.gamegui_patch", null, {
         constructor: function(){
             console.log('ebg.core.gamegui_patch constructor');
-            if(!dijit._masterTT){ dijit._masterTT = dijit.Tooltip._masterTT = new dijit.Tooltip._MasterTooltip(); }
-            dijit._masterTT._origShow = dijit._masterTT.show;
-            dijit._masterTT.show = this._masterTT_Show;
-            dijit._masterTT._getZoomFactor = () => {return this.gameinterface_zoomFactor;};
+            dijit.Tooltip._MasterTooltip.prototype._origShow = dijit.Tooltip._MasterTooltip.prototype.show;
+            dijit.Tooltip._MasterTooltip.prototype.show = this._masterTT_Show;
+            dijit.Tooltip._MasterTooltip.prototype._getZoomFactor = () => {return this.gameinterface_zoomFactor;};
         },
 
         _masterTT_Show: function(innerHTML, aroundNode, position, rtl, textDir, onMouseEnter, onMouseLeave){
