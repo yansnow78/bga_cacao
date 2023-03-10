@@ -40,7 +40,7 @@ define([
                     Shift: 16,
                     AnyOrNone: 32
                   };
-                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Disabled, pinchZooming:true};
+                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Any, pinchZooming:false};
 
                 this.zoomChangeHandler = null;
                 this.bScrollDeltaAlignWithZoom = true;
@@ -56,8 +56,7 @@ define([
                 this._onpointerup_handler=null;
                 this._onpointercancel_handler=null;
                 this._onpointerup_handled=false;
-                this._startPoints = new Map();
-
+                this._interacting = false;
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
@@ -98,7 +97,11 @@ define([
 
                         .scrollmap_container {
                             z-index: var(--z_index_anim);
-                            /* touch-action: pan-x pan-y; */
+                            touch-action: initial !important;
+                        }
+
+                        .scrollmap_container *{
+                            touch-action: unset !important;
                         }
 
                         .scrollmap_overflow_clipped {
@@ -176,10 +179,10 @@ define([
                 dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
                 this.container_div.addEventListener('wheel', this.onWheel.bind(this)/* ,{ passive: false } */);
                 var _handleTouch=this._handleTouch.bind(this);
-                this.container_div.addEventListener("touchstart", _handleTouch);
-                this.container_div.addEventListener("touchmove", _handleTouch);
-                document.addEventListener("touchend", _handleTouch);
-                document.addEventListener("touchcancel", _handleTouch);
+                this.container_div.addEventListener("touchstart", _handleTouch, {passive: true});
+                this.container_div.addEventListener("touchmove", _handleTouch, {passive: false});
+                document.addEventListener("touchend", _handleTouch, {passive: true});
+                document.addEventListener("touchcancel", _handleTouch, {passive: true});
 
                 this.container_div.setAttribute("warning_touch", _("Use two fingers to move or zoom the board"));
                 this.container_div.setAttribute("warning_scroll", _("Use ctrl or alt or shift + scroll to zoom the board"));
@@ -337,9 +340,9 @@ define([
                 if (e.touches.length==1)
                     return 0;
                 else
-                    return Math.sqrt(
-                        Math.pow(Math.abs(e.touches[0].clientX - e.touches[1].clientX), 2) +
-                        Math.pow(Math.abs(e.touches[0].clientY - e.touches[1].clientY), 2)
+                    return Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
                     );
             },
 
@@ -355,6 +358,15 @@ define([
 
             _handleTouch: function (e) {
                 // var i, touch;
+                if (e.type !== "touchmove" && e.type !== "touchstart"){
+                    // if (e.touches.length === 1 && !(this.bEnableScrolling && this.scrollingOptions.oneFingerScrolling)) {
+                    //     this._interacting = true;
+                    //     console.log(e.touches.length);
+                    // }
+                    if (e.touches.length === 0)
+                        this._interacting = false;
+                    //console.log(e.touches.length);
+                }
                 if ((e.type !== "touchmove" && e.type !== "touchstart") || 
                    !((this.bEnableScrolling) || (this.bEnableZooming   && this.zoomingOptions.pinchZooming)))
                 {
@@ -363,34 +375,54 @@ define([
                     return;
                 }
                 if (e.type === "touchstart") {
-                    this._startTouchesDist = this._getTouchesDist(e);
-                    this._startTouchesMiddle = this._getTouchesMiddle(e);
+                    this._prevTouchesDist = this._getTouchesDist(e);
+                    this._prevTouchesMiddle = this._getTouchesMiddle(e);
+                    //this._firstTouchMove = true;
+                    if (e.touches.length === 1)
+                        this._interacting = false;
+                    this._gestureStart = (e.touches.length === e.targetTouches.length);
+                    // const date = Date.now();
+                    // let currentDate = null;
+                    // do {
+                    //     currentDate = Date.now();
+                    // } while (currentDate - date < 40);
                 }
-                if (e.touches.length === 1 && !(this.bEnableScrolling && this.scrollingOptions.oneFingerScrolling)) {
-                    this._disableInteractions();
-                    if (e.type === "touchmove") 
+                if (e.type === "touchmove")  {
+                    if (e.touches.length === 1 && !(this.bEnableScrolling && this.scrollingOptions.oneFingerScrolling)) {
+                        this._disableInteractions();
                         this.container_div.classList.add("scrollmap_warning_touch");
-                } else {
-                    this._enableInteractions();
-                    this.container_div.classList.remove("scrollmap_warning_touch");
-                    if (e.type === "touchmove") {
-                        var touchesMiddle = this._getTouchesMiddle(e);
-                        var scrollX = Math.abs(touchesMiddle.x-this._startTouchesMiddle.x);
-                        var scrollY = Math.abs(touchesMiddle.y-this._startTouchesMiddle.y);
-                        var touchesDist = this._getTouchesDist(e);
-                        var touchesDistDiff = Math.abs(touchesDist-this._startTouchesDist);
-                        var zooming = touchesDistDiff > 5 && ((scrollX + scrollY)<touchesDistDiff);
-                        var scrolling = (scrollX + scrollY) > 5 && ((scrollX + scrollY)>touchesDistDiff);
-                        // console.log("touchmove", scrollX+scrollY, scrolling, "   ", touchesDistDiff, zooming);
-
-                        if (scrolling & (this.bEnableScrolling)) {
-                            // console.log("prevent scrolling");
+                    } else {
+                        if (this._gestureStart) {
+                            this._gestureStart = false;
+                            this._interacting = true;
+                            //this._firstTouchMove = false;
+                            var touchesMiddle = this._getTouchesMiddle(e);
+                            var scrollX = Math.abs(touchesMiddle.x-this._prevTouchesMiddle.x);
+                            var scrollY = Math.abs(touchesMiddle.y-this._prevTouchesMiddle.y);
+                            var touchesDist = this._getTouchesDist(e);
+                            var touchesDistDiff = Math.abs(touchesDist-this._prevTouchesDist);
+                            var zooming = /* touchesDistDiff > 5 &&  */((scrollX + scrollY)<touchesDistDiff);
+                            // var scrolling = /* (scrollX + scrollY) > 5 &&  */(5*(scrollX + scrollY)>touchesDistDiff);
+                            var scrolling = /* (scrollX + scrollY) > 5 &&  */(Math.hypot(scrollX + scrollY)>touchesDistDiff);
+                             console.log("touchmove", scrollX+scrollY, scrolling, "   ", touchesDistDiff, zooming);
+                        //     if ((scrolling && this.bEnableScrolling) || 
+                        //         (zooming && this.bEnableZooming && this.zoomingOptions.pinchZooming)) {
+                        //         this.container_div.classList.remove("scrollmap_warning_touch");
+                        //         this._interacting = true;
+                        //         console.log('start interacting');
+                        //     }
+                            this._enableInteractions();
+                            // e.stopImmediatePropagation();
+                            // e.preventDefault();
+                        }
+                        // console.log(this._interacting);
+                        if (this._interacting) {
+                            // this._enableInteractions();
+                            // e.stopImmediatePropagation();
                             e.preventDefault();
-                        }               
-                        if (zooming & (this.bEnableZooming   && this.zoomingOptions.pinchZooming)) {
-                            // console.log("prevent zooming");
-                            e.preventDefault();
-                        }               
+                        }
+                        //this._prevTouchesDist = touchesDist;
+                        //this._prevTouchesMiddle = touchesMiddle;
                     }
                 }
             },
