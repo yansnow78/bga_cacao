@@ -2,49 +2,52 @@
 
 define([
     "dojo", "dojo/_base/declare",
-    "dojo/fx",
-    "dojo/fx/easing",
+    "dojo/dom-geometry",
     "dijit/Tooltip"
 ],
-function (dojo, declare) {
-
+function (dojo, declare, domGeometry, Tooltip) {
     return declare("ebg.core.gamegui_patch", null, {
         constructor: function(){
             console.log('ebg.core.gamegui_patch constructor');
-            dijit.Tooltip._MasterTooltip.prototype._origShow = dijit.Tooltip._MasterTooltip.prototype.show;
-            dijit.Tooltip._MasterTooltip.prototype.show = this._masterTT_Show;
-            dijit.Tooltip._MasterTooltip.prototype._getZoomFactor = () => {return this.gameinterface_zoomFactor;};
+            domGeometry._origPosition = domGeometry.position;
+            domGeometry._getZoomFactor = () => {return this.gameinterface_zoomFactor;};
+            Tooltip._MasterTooltip.prototype._origShow = Tooltip._MasterTooltip.prototype.show;
+            Tooltip._MasterTooltip.prototype.show = this._masterTT_Show;
+            Tooltip._MasterTooltip.prototype._geom_position = this._geom_position;
         },
 
         _masterTT_Show: function(innerHTML, aroundNode, position, rtl, textDir, onMouseEnter, onMouseLeave){
-			if(this.aroundNode && this.aroundNode === aroundNode && this.containerNode.innerHTML == innerHTML){
-				return;
-			}
-
-			if(this.fadeOut.status() == "playing"){
-				// previous tooltip is being hidden; wait until the hide completes then show new one
-				this._onDeck=arguments;
-				return;
-			}
-            this._origShow(innerHTML, aroundNode, position, rtl, textDir, onMouseEnter, onMouseLeave);
-            const zoom = this._getZoomFactor();
-            if (zoom == 1)
-                return;
-                // look if aroundNode is a node inside a zoomed div and store this info to not redo that each time
-                if (!aroundNode.hasAttribute('_may_be_zoomed')){
-                // look if 
-                const may_be_zoomed = $('page-content').contains(aroundNode) || $('right-side-first-part').contains(aroundNode) || $('page-title').contains(aroundNode);
-                aroundNode.setAttribute('_may_be_zoomed', may_be_zoomed.toString());
-            }
-            if (aroundNode.getAttribute('_may_be_zoomed')==="true"){
-                this.domNode.style.zoom = zoom; 
-                let s = this.domNode.style;
-                const left = parseInt(s.left.slice(0, -2));
-                const top = parseInt(s.top.slice(0, -2));
-                const scrollCorr =  (1 -zoom) / zoom;
-                s.left = left + (window.scrollX * scrollCorr) + 'px';
-                s.top  = top + (window.scrollY * scrollCorr) + 'px';
+            // domGeometry._origPosition = domGeometry.position;
+            domGeometry.position = this._geom_position;
+            try {
+                this._origShow(innerHTML, aroundNode, position, rtl, textDir, onMouseEnter, onMouseLeave);
+            } finally {
+                domGeometry.position = domGeometry._origPosition;
             }
         },
+
+        _geom_position : function(/*DomNode*/ node, /*Boolean?*/ includeScroll){
+            const zoom = this._getZoomFactor();
+            if (zoom != 1) {
+                // look if aroundNode is a node inside a zoomed div and store this info to not redo that each time
+                if (!node.hasAttribute('_may_be_zoomed')){
+                    const may_be_zoomed = $('page-content').contains(node) || $('right-side-first-part').contains(node) || $('page-title').contains(node);
+                    node.setAttribute('_may_be_zoomed', may_be_zoomed.toString());
+                }
+                if (node.getAttribute('_may_be_zoomed')==="true"){
+                    let position = this._origPosition(node, false);
+                    position.x = position.x*zoom;
+                    position.y = position.y*zoom;
+                    if (includeScroll){
+                        position.x += window.scrollX;
+                        position.y += window.scrollY;
+                    }
+                    position.w = position.w*zoom;
+                    position.h = position.h*zoom;
+                    return position;
+                }
+            } 
+            return this._origPosition(node, includeScroll);
+        }
     });
 });
