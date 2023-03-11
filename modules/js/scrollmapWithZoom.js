@@ -3,7 +3,6 @@
  * Code by yannsnow
  * */
 
-// import { testlog } from '"./modules/js/testclass"';
 define([
     "dojo", "dojo/_base/declare" , "./long-press-event"
 ],
@@ -46,7 +45,7 @@ define([
                 this.bScrollDeltaAlignWithZoom = true;
                 this.scrollDelta = 0;
                 this._scrollDeltaAlignWithZoom = 0;
-                this._pointers = [];
+                this._pointers = new Map();
                 this._classNameSuffix = '';
                 this.bEnableLongPress = true;
                 this._longPress =  null;
@@ -54,9 +53,8 @@ define([
                 this._resizeObserver = null;
                 if (typeof ResizeObserver !== 'undefined')
                     this._resizeObserver = new ResizeObserver(this.onResize.bind(this));
-                this._onpointermove_handler=null;
-                this._onpointerup_handler=null;
-                this._onpointercancel_handler=null;
+                this._onpointermove_handler = this.onPointerMove.bind(this);
+                this._onpointerup_handler = this.onPointerUp.bind(this);
                 this._onpointerup_handled=false;
                 this._interacting = false;
             },
@@ -178,7 +176,13 @@ define([
                 if (create_extra !== null)
                     create_extra(this);
 
-                dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
+                if (window.PointerEvent)
+                    dojo.connect(this.surface_div, 'onpointerdown', this, 'onPointerDown');
+                else {
+                    dojo.connect(this.surface_div, 'onmousedown', this, 'onPointerDown');
+                    dojo.connect(this.surface_div, 'ontouchstart', this, 'onPointerDown');
+                }
+
                 this.container_div.addEventListener('wheel', this.onWheel.bind(this)/* ,{ passive: false } */);
                 var _handleTouch=this._handleTouch.bind(this);
                 this.container_div.addEventListener("touchstart", _handleTouch, {passive: true});
@@ -255,39 +259,33 @@ define([
                 this.scrollto(this.board_x, this.board_y, 0, 0);
             },
 
-            _findPointerIndex: function (event) {
-                var i = this._pointers.length;
-                while (i--) {
-                    if (this._pointers[i].pointerId === event.pointerId) {
-                        return i;
-                    }
-                }
-                return -1;
-            },
-
-            _addPointer: function (event) {
-                const i = this._findPointerIndex(event);
-                // Update if already present
-                if (i > -1) {
-                    const prevEv = this._pointers[i];
-                    this._pointers.splice(i, 1, event);
+            _updatePointers: function (event) {
+                var prevEv;
+                if (event.changedTouches) { // TouchEvent
+                    Array.from(event.changedTouches).forEach( touch => {
+                        const id =  touch.identifier;
+                        prevEv = this._pointers.get(id);
+                        this._pointers.set(id, touch);
+                    });
+                    return prevEv; 
+                } else {
+                    const id =  (event.pointerId) ? event.pointerId : 0;
+                    prevEv = this._pointers.get(id);
+                    this._pointers.set(id, event);
                     return prevEv;
-                } else
-                    this._pointers.push(event);
+                } 
             },
 
-            _removePointer: function (event) {
-                const i = this._findPointerIndex(event);
-                if (i > -1) {
-                    this._pointers.splice(i, 1);
-                }
-            },
-
-            _getPointerPrevEvent: function (event) {
-                const i = this._findPointerIndex(event);
-                if (i > -1) {
-                    return this._pointers[i];
-                }
+            _removePointers: function (event) {
+                if (event.changedTouches) { // TouchEvent
+                    Array.from(event.changedTouches).forEach( touch => {
+                        const id =  touch.identifier;
+                        this._pointers.delete(id, touch);
+                    });
+                } else {
+                    const id =  (event.pointerId) ? event.pointerId : 0;
+                    this._pointers.delete(id);
+                } 
             },
 
             _getPageZoom: function () {
@@ -434,25 +432,33 @@ define([
                 // ev.preventDefault();
                 if (!this.bEnableScrolling && !(this.bEnableZooming   && this.zoomingOptions.pinchZooming))
                     return;
-                if ((ev.pointerType ="mouse") && (ev.button != 0)) //for mouse only accept left button
+                if ((ev.pointerType =="mouse") && (ev.button != 0)) //for mouse only accept left button
                     return;
 
                 if (this._onpointerup_handled == false) {
                     this._onpointerup_handled = true;
-                    document.addEventListener( "pointermove", this._onpointermove_handler=this.onPointerMove.bind(this));
-                    document.addEventListener( "pointerup", this._onpointerup_handler=this.onPointerUp.bind(this));
-                    document.addEventListener( "pointercancel", this._onpointercancel_handler=this.onPointerUp.bind(this));
+                    if (window.PointerEvent) {
+                        document.addEventListener( "pointermove", this._onpointermove_handler);
+                        document.addEventListener( "pointerup", this._onpointerup_handler);
+                        document.addEventListener( "pointercancel", this._onpointerup_handler);
+                    } else {
+                        document.addEventListener( "mousemove", this._onpointermove_handler);
+                        document.addEventListener( "touchmove", this._onpointermove_handler);
+                        document.addEventListener( "mouseup", this._onpointerup_handler);
+                        document.addEventListener( "touchend", this._onpointerup_handler);
+                        document.addEventListener( "touchcancel", this._onpointerup_handler);
+                    }
                 }
-                this._addPointer(ev);
+                this._updatePointers(ev);
             },
 
             onPointerMove: function (ev) {
                 // console.log("pointer move");
-                const prevEv = this._addPointer(ev);
+                const prevEv = this._updatePointers(ev);
 
                 // If one pointer is move, drag the map
-                if (this._pointers.length === 1) {
-                    if (!this.bEnableScrolling || (ev.pointerType =='touch' && !this.scrollingOptions.oneFingerScrolling))
+                if (this._pointers.size === 1) {
+                    if (!this.bEnableScrolling || ((ev.pointerType =='touch' || ev.changedTouches) && !this.scrollingOptions.oneFingerScrolling))
                         return;
 
                     if ((typeof prevEv !== 'undefined')) {
@@ -462,11 +468,12 @@ define([
                     }
                 }
                 // If two _pointers are move, check for pinch gestures
-                else if (this._pointers.length === 2) {
+                else if (this._pointers.size === 2) {
 
                     // Calculate the distance between the two _pointers
-                    const ev1 = this._pointers[0];
-                    const ev2 = this._pointers[1];
+                    const it = this._pointers.values();
+                    const ev1 = it.next().value;
+                    const ev2 = it.next().value;
                     const curDist = Math.sqrt(
                         Math.pow(Math.abs(ev2.clientX - ev1.clientX), 2) +
                         Math.pow(Math.abs(ev2.clientY - ev1.clientY), 2)
@@ -491,17 +498,25 @@ define([
             },
 
             onPointerUp: function (ev) {
-                this._removePointer(ev);
+                this._removePointers(ev);
                 // If no pointer left, stop drag or zoom the map
-                if (this._pointers.length === 0) {
+                if (this._pointers.size === 0) {
                     this._onpointerup_handled = false;
-                    document.removeEventListener( "pointermove", this._onpointermove_handler);
-                    document.removeEventListener( "pointerup", this._onpointerup_handler);
-                    document.removeEventListener( "pointercancel", this._onpointercancel_handler);
+                    if (window.PointerEvent) {
+                        document.removeEventListener( "pointermove", this._onpointermove_handler);
+                        document.removeEventListener( "pointerup", this._onpointerup_handler);
+                        document.removeEventListener( "pointercancel", this._onpointerup_handler);
+                    } else {
+                        document.removeEventListener( "mousemove", this._onpointermove_handler);
+                        document.removeEventListener( "touchmove", this._onpointermove_handler);
+                        document.removeEventListener( "mouseup", this._onpointerup_handler);
+                        document.removeEventListener( "touchend", this._onpointerup_handler);
+                        document.removeEventListener( "touchcancel", this._onpointerup_handler);
+                    }
                 }
 
                 // If the number of _pointers down is less than two then reset diff tracker
-                if (this._pointers.length < 2) {
+                if (this._pointers.size < 2) {
                     this._prevDist = -1;
                 }
 
@@ -564,13 +579,7 @@ define([
             },
 
             scroll: function (dx, dy, duration, delay) {
-                if (typeof duration == 'undefined') {
-                    duration = 350; // Default duration
-                }
-                if (typeof delay == 'undefined') {
-                    delay = 0; // Default delay
-                }
-                //console.log(dx+' '+dy);
+                console.log("scroll", this.board_x, dx, this.board_y, dy);
                 this.scrollto(this.board_x + dx, this.board_y + dy, duration, delay);
             },
             
