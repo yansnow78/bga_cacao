@@ -40,7 +40,7 @@ define([
                     Shift: 16,
                     AnyOrNone: 32
                   };
-                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Any, pinchZooming:false};
+                this.zoomingOptions = {wheelZoming: this.wheelZoomingKeys.Any, pinchZooming:true};
 
                 this.zoomChangeHandler = null;
                 this.bScrollDeltaAlignWithZoom = true;
@@ -51,7 +51,9 @@ define([
                 this.bEnableLongPress = true;
                 this._longPress =  null;
                 this._bEnlargeReduceButtonsInsideMap=false;
-                this._resizeObserver = new ResizeObserver(this.onResize.bind(this));
+                this._resizeObserver = null;
+                if (typeof ResizeObserver !== 'undefined')
+                    this._resizeObserver = new ResizeObserver(this.onResize.bind(this));
                 this._onpointermove_handler=null;
                 this._onpointerup_handler=null;
                 this._onpointercancel_handler=null;
@@ -191,7 +193,8 @@ define([
                     this.defaultZoom=this.zoom;
                 this.setMapZoom(this.defaultZoom);
                 this.scrollto(0, 0);
-                this._resizeObserver.observe(this.container_div);
+                if  (this._resizeObserver)
+                    this._resizeObserver.observe(this.container_div);
             },
 
             createCompletely: function (container_div, page=null, create_extra=null, bEnlargeReduceButtonsInsideMap=true) {
