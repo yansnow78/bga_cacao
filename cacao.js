@@ -13,13 +13,12 @@ define([
 	"dojo", "dojo/_base/declare",
 	'./modules/js/scrollmapWithZoom',
 	'./modules/js/core_patch',
-	'./modules/js/gamegui_patch',
 	"ebg/core/gamegui",
 	"ebg/counter",
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch, ebg.core.gamegui_patch], {
+		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;
@@ -109,7 +108,7 @@ define([
 						dojo.addClass(placedTileId, "last");
 					}
 				}
-				this.scrollmap.defaultPosition = this.scrollmap.scrollToCenter();
+				//this.scrollmap.defaultPosition = this.scrollmap.scrollToCenter();
 
 				/*
 					Show two jungle tiles in the display

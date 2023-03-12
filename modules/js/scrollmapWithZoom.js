@@ -23,7 +23,7 @@ define([
                 this.maxZoom = 2;
                 this.minZoom = 0.1;
                 this.defaultZoom = null;
-                this.defaultPosition = {x: 0,y: 0};
+                this.defaultPosition = null; //{x: 0,y: 0};
                 this._prevZoom = 1;
                 this.bEnableScrolling = true;
                 this.scrollingOptions = {oneFingerScrolling: false};
@@ -917,11 +917,17 @@ define([
 
             onReset: function (evt) {
                 this.setMapZoom(this.defaultZoom);
-                this.scrollto(this.defaultPosition.x, this.defaultPosition.y);
+                if (this.defaultPosition)
+                    this.scrollto(this.defaultPosition.x, this.defaultPosition.y);
+                else
+                    this.scrollToCenter();
             },
 
             onBackToCenter: function(evt) {
-                this.scrollto(this.defaultPosition.x, this.defaultPosition.y);
+                if (this.defaultPosition)
+                    this.scrollto(this.defaultPosition.x, this.defaultPosition.y);
+                else
+                    this.scrollToCenter();
             },
 
             //////////////////////////////////////////////////
