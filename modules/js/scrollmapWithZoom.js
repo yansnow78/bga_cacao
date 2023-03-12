@@ -57,6 +57,24 @@ define([
                 this._onpointerup_handler = this.onPointerUp.bind(this);
                 this._onpointerup_handled=false;
                 this._interacting = false;
+
+                /* Feature detection */
+
+                // Test via a getter in the options object to see if the passive property is accessed
+                let passiveIfSupported = false;
+                let notPassiveIfSupported = false;
+                try {
+                    var opts = Object.defineProperty({}, 'passive', {
+                        get: function() {
+                            passiveIfSupported = { passive: true };
+                            notPassiveIfSupported = { passive: false };
+                        }
+                    });
+                    window.addEventListener("testPassive", null, opts);
+                    window.removeEventListener("testPassive", null, opts);
+                    this.passiveIfSupported = passiveIfSupported;
+                    this.notPassiveIfSupported = notPassiveIfSupported;
+                } catch (e) {}
             },
 
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null) {
@@ -158,15 +176,15 @@ define([
                         content: attr(warning_scroll); }
 
                         .scrollmap_container.enable_zoom_interaction.enable_pan_interaction {
-                            touch-action: none;
+                            touch-action: none !important;
                         }
                         .scrollmap_container.enable_zoom_interaction {
-                            touch-action: pan-x pan-y;
+                            touch-action: pan-x pan-y !important;
                         }
                         .scrollmap_container.enable_pan_interaction {
                         	/* Fallback for FF which doesn't support pinch-zoom */
-                        	touch-action: none;
-                            touch-action: pinch-zoom;
+                        	touch-action: none !important;
+                            touch-action: pinch-zoom !important;
                         }`;
                     // styleElt.type = "text/css";
                     styleElt.id = 'css-scrollmap';
@@ -183,12 +201,12 @@ define([
                     dojo.connect(this.surface_div, 'ontouchstart', this, 'onPointerDown');
                 }
 
-                this.container_div.addEventListener('wheel', this.onWheel.bind(this)/* ,{ passive: false } */);
+                this.container_div.addEventListener('wheel', this.onWheel.bind(this), this.notPassiveIfSupported);
                 var _handleTouch=this._handleTouch.bind(this);
-                this.container_div.addEventListener("touchstart", _handleTouch, {passive: true});
-                this.container_div.addEventListener("touchmove", _handleTouch, {passive: false});
-                document.addEventListener("touchend", _handleTouch, {passive: true});
-                document.addEventListener("touchcancel", _handleTouch, {passive: true});
+                this.container_div.addEventListener("touchstart", _handleTouch, this.passiveIfSupported );
+                this.container_div.addEventListener("touchmove", _handleTouch, this.notPassiveIfSupported);
+                document.addEventListener("touchend", _handleTouch, this.passiveIfSupported );
+                document.addEventListener("touchcancel", _handleTouch, this.passiveIfSupported );
 
                 this.container_div.setAttribute("warning_touch", _("Use two fingers to move or zoom the board"));
                 this.container_div.setAttribute("warning_scroll", _("Use ctrl or alt or shift + scroll to zoom the board"));
