@@ -900,9 +900,9 @@ define([
             //////////////////////////////////////////////////
             //// Reset with buttons
             setupOnScreenResetButtons: function () {
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'reset').connect('onclick', this, 'onReset').style('cursor', 'pointer');
-                dojo.query('#' + this.container_div.id + ' .'+this._classNameSuffix+'back_to_center').connect('onclick', this, 'onBackToCenter').style('cursor', 'pointer');
-                this.showOnScreenResetButtons();
+                this._initButton('reset', this.onReset);
+                this._initButton('back_to_center', this.onBackToCenter);
+                // this.showOnScreenResetButtons();
             },
 
             showOnScreenResetButtons: function () {
