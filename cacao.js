@@ -108,7 +108,7 @@ define([
 						dojo.addClass(placedTileId, "last");
 					}
 				}
-				//this.scrollmap.defaultPosition = this.scrollmap.scrollToCenter();
+				this.scrollmap.scrollToCenter();
 
 				/*
 					Show two jungle tiles in the display
