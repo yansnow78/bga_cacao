@@ -142,8 +142,7 @@
 			},
 
 			setViewPort: function () {
-				var agent = navigator.userAgent.toLowerCase();
-				if ((agent.indexOf('firefox') >= 0) || (agent.indexOf("fxios") >= 0)) {
+				if (typeof document.body.style.zoom === "undefined") { // css zoom not supported
 					this.interface_min_width = 500;
 					if (screen.width < this.interface_min_width) {
 						var viewport = document.getElementsByName("viewport")[0];
