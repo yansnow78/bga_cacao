@@ -137,8 +137,8 @@
 				// Setup game notifications to handle (see "setupNotifications" method below)
 				this.setupNotifications();
 
-                // User preferences
-                this.setupUserPreferences();
+				// User preferences
+				this.setupUserPreferences();
 			},
 
 			setViewPort: function () {
