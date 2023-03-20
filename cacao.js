@@ -20,7 +20,7 @@
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch , ebg.core.core_patch2/* , ebg.core.gamegui_patch */], {
+		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch, ebg.core.core_patch2/* , ebg.core.gamegui_patch */], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;
