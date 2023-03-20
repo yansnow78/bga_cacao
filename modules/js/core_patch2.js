@@ -10,7 +10,7 @@ define([
 				Tooltip.prototype._setConnectIdAttr = this._setConnectIdAttr;
 			},
 
-			/* patch to make tooltip displayed on ios */
+			/* patch to make tooltip displayed on safari ios*/
 			_setConnectIdAttr: function (/*String|String[]|DomNode|DomNode[]*/ newId) {
 				// summary:
 				//		Connect to specified node(s)
@@ -43,58 +43,30 @@ define([
 						/* begin of patch for safari ios */
 						on(node, "touchstart", function (e) { //pointerdown
 							if (e.touches.length === 1){
-								// if (!(target.contains(e.touches[0].target)) && !(target==e.touches[0].target)) {
-								// 	self._set("state", "DORMANT");
-								// 	console.log("touch outside target");
-								// } else {
 								var hideFct = function (e) {
-									console.log("end monitor touchstart, close tooltip", e.type);
+									// console.log("end monitor touchstart, close tooltip", e.type);
 									document.removeEventListener("touchstart", hideFct, true);
 									self.set("state", "DORMANT");
 								};
 								var stopTimerFct = function (e) {
-									console.log("end monitor touchcancel", e.type);
+									// console.log("end monitor touchcancel", e.type);
 									document.removeEventListener("touchcancel", stopTimerFct, true);
 									document.removeEventListener("touchend", stopTimerFct, true);
+									document.removeEventListener("pointerleave", stopTimerFct, true); 
 									if (self.state == "SHOWING") { //already showing, no time to stop
 										document.addEventListener("touchstart", hideFct, true);
-										console.log("monitor touchstart", e.type);
+										// console.log("monitor touchstart", e.type);
 									} else { // stop timer
 										self.set("state", "DORMANT");
-										console.log("close tooltip", e.type);
+										// console.log("close tooltip", e.type);
 									}
 								};
 								document.addEventListener("touchend", stopTimerFct, true);
 								document.addEventListener("touchcancel", stopTimerFct, true);
-								// var signal = on(document, "touchstart", function (e) {
-								// 	signal.remove();
-								// 	console.log("close tooltip");
-								// 	self._set("state", "DORMANT");
-								// }, );
-								console.log("start show tooltip timer");
+								document.addEventListener("pointerleave", stopTimerFct, true); 
 								self._onHover(this);
-								// console.log("touchstart");
-								// }
 							}
 						}),
-						// on(document, "touchstart", function (e) {
-						// 	if (self.state == "SHOWING"){
-						// 		self._set("state", "HIDE_TIMER");
-						// 		console.log("touchstart closetootlip", self.state);
-						// 	}
-						// }),
-						// on(document, "touchend", function (ev) { // pointerup
-						// 	if ((self.state != "SHOWING") && (self.state != "HIDE_TIMER")){
-						// 		self._set("state", "DORMANT");
-						// 		console.log("touchend close tooltip");
-						// 	}
-						// }),
-						// on(document, "touchcancel", function (ev) { // pointercancel
-						// 	if ((self.state != "SHOWING") && (self.state != "HIDE_TIMER")){
-						// 		self._set("state", "DORMANT");
-						// 		console.log(" touchcancel close tooltip");
-						// 	}
-						// }),
 						/* end of patch*/
 						on(node, delegatedEvent("mouseleave"), lang.hitch(self, "_onUnHover")),
 						on(node, delegatedEvent("focusout"), lang.hitch(self, "set", "state", "DORMANT"))
