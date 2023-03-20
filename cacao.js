@@ -110,7 +110,7 @@
 						dojo.addClass(placedTileId, "last");
 					}
 				}
-				this.scrollmap.scrollToCenter();
+				// this.scrollmap.scrollToCenter();
 
 				/*
 					Show two jungle tiles in the display
