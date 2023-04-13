@@ -51,34 +51,6 @@
 /**************************
 * positioning of buttons  *
 ***************************/
-.scrollmap_container > .movetop {
-  top: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.scrollmap_container > .movedown {
-  bottom: 0px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.scrollmap_container > .moveleft {
-  left: 0px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.scrollmap_container > .moveright {
-  right: 0px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.scrollmap_container > .zoomplus, .scrollmap_container > .zoomminus {
-  top: 50%;
-}
-
 .scrollmap_container > .zoomminus {
   top: calc((var(--icon_size) + 8px) * 2 + 32px);
   right: calc((var(--icon_size) + 8px) * 0 + 8px);
@@ -99,7 +71,7 @@
   right: calc((var(--icon_size) + 8px) * 0 + 8px);
 }
 
-.scrollmap_footer {
+.scrollmap_footer, .scrollmap_header {
   text-align: center;
 }
 
