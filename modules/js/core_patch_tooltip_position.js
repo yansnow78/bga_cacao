@@ -6,13 +6,15 @@ define([
     "dijit/Tooltip"
 ],
 function (dojo, declare, domGeometry, Tooltip) {
-    return declare("ebg.core.gamegui_patch", null, {
+    return declare("ebg.core.core_patch_tooltip_position", null, {
         constructor: function(){
-            console.log('ebg.core.gamegui_patch constructor');
+            console.log('ebg.core.core_patch_tooltip_position constructor');
             this._checkIfPosCorrNeeded();
         },
 
         _checkIfPosCorrNeeded: function(){
+            if (Tooltip._MasterTooltip.prototype._origShow)
+                return;
             const scrollX = window.pageXOffset;
             const scrollY = window.pageYOffset;
             const el = document.createElement("div");

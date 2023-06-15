@@ -12,15 +12,15 @@
  define([
 	"dojo", "dojo/_base/declare",
 	'./modules/js/scrollmapWithZoom',
-	'./modules/js/core_patch',
-	'./modules/js/core_patch2',
-	// './modules/js/gamegui_patch',
+	//'./modules/js/core_patch_slideto',
+	'./modules/js/core_patch_tooltip_show',
+	'./modules/js/core_patch_tooltip_position',
 	"ebg/core/gamegui",
 	"ebg/counter",
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui, ebg.core.core_patch, ebg.core.core_patch2/* , ebg.core.gamegui_patch */], {
+		return declare("bgagame.cacao", [ebg.core.gamegui, /*ebg.core.core_patch_slideto, */ebg.core.core_patch_tooltip_show , ebg.core.core_patch_tooltip_position], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;

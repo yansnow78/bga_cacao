@@ -4,12 +4,12 @@ define([
 	"dijit/Tooltip"
 ],
 	function (dojo, declare, array, dom, lang, mouse, on, Tooltip) {
-		return declare("ebg.core.core_patch2", null, {
+		return declare("ebg.core.core_patch_tooltip_show", null, {
 			constructor: function () {
-				console.log('ebg.core.gamegui_patch constructor');
+				console.log('ebg.core.core_patch_tooltip_show constructor');
 				Tooltip.prototype._setConnectIdAttr = this._setConnectIdAttr;
 			},
-
+			
 			/* patch to make tooltip displayed on safari ios*/
 			_setConnectIdAttr: function (/*String|String[]|DomNode|DomNode[]*/ newId) {
 				// summary:
@@ -26,6 +26,7 @@ define([
 
 				// Make connections
 				this._connections = array.map(this._connectIds, function (id) {
+					var t = null;
 					var node = dom.byId(id, this.ownerDocument),
 						selector = this.selector,
 						delegatedEvent = selector ?
@@ -34,36 +35,49 @@ define([
 						self = this/* ,
 						target = node */;
 					return [
-						on(node, delegatedEvent(mouse.enter), function () {
-							self._onHover(this);
+						// pointerenter is prefferred over mouseenter as on touch device releasing the pointer will trigger false mousenter.
+						// mousenter false events will break the expected behaviour that if a parent div is attach to a tooltip
+						// and a child div is attached to another tooltip you expect the child tooltip to show when you touch the child
+						on(node, delegatedEvent(('PointerEvent' in window) ? "pointerenter":"mouseenter"), function (e) {
+							// e.stopPropagation();
+							// console.log(e.type, e.target);
+							t2 = Date.now();
+							if ((t== null) || ((t2 - t) > 300))
+								self._onHover(this);
 						}),
-						on(node, delegatedEvent("focusin"), function () {
+						on(node, delegatedEvent("focusin"), function (e) {
+							// e.stopPropagation();
+							// console.log(e.type, e.target);
 							self._onHover(this);
 						}),
 						/* begin of patch for safari ios */
 						on(node, "touchstart", function (e) { //pointerdown
+							e.stopPropagation();
 							if (e.touches.length === 1){
+								t = Date.now();
+								// console.log(e.type, e.target);
 								var hideFct = function (e) {
-									// console.log("end monitor touchstart, close tooltip", e.type);
+									// console.log("hideFct, close tooltip", e.type);
 									document.removeEventListener("touchstart", hideFct, true);
 									self.set("state", "DORMANT");
 								};
 								var stopTimerFct = function (e) {
-									// console.log("end monitor touchcancel", e.type);
+									var t2 = Date.now();
+									// console.log("stopTimerFct", e.type, e.target);
 									document.removeEventListener("touchcancel", stopTimerFct, true);
 									document.removeEventListener("touchend", stopTimerFct, true);
-									document.removeEventListener("pointerleave", stopTimerFct, true); 
+									document.removeEventListener("pointerout", stopTimerFct, true); 
 									if (self.state == "SHOWING") { //already showing, no time to stop
 										document.addEventListener("touchstart", hideFct, true);
-										// console.log("monitor touchstart", e.type);
+										// console.log("monitor touchstart", e.type, e.target);
 									} else { // stop timer
 										self.set("state", "DORMANT");
-										// console.log("close tooltip", e.type);
+										// console.log("close tooltip", e.type, e.target);
 									}
 								};
 								document.addEventListener("touchend", stopTimerFct, true);
 								document.addEventListener("touchcancel", stopTimerFct, true);
-								document.addEventListener("pointerleave", stopTimerFct, true); 
+								document.addEventListener("pointerout", stopTimerFct, true); 
 								self._onHover(this);
 							}
 						}),
