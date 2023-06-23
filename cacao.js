@@ -20,7 +20,7 @@
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui, /*ebg.core.core_patch_slideto, ebg.core.core_patch_tooltip_show , ebg.core.core_patch_tooltip_position*/], {
+		return declare("bgagame.cacao", [ebg.core.gamegui/*, ebg.core.core_patch_slideto, ebg.core.core_patch_tooltip_show , ebg.core.core_patch_tooltip_position*/], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;
@@ -60,6 +60,7 @@
 				this.scrollmap.setupOnScreenResetButtons();
 				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
 				this.scrollmap.setupInfoButton();
+				this.scrollmap.adaptHeightAuto = true;
 				// this.rotateTo($('map_container'), 45);
 				/*
 					Setting up player boards
