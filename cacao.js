@@ -28,7 +28,7 @@
 
 				this.jungles_display = new ebg.zone();
 				this.scrollmap = new ebg.scrollmapWithZoom(); // Scrollable area
-				this.scrollmap.zoom = 0.8;
+				this.scrollmap.zoom = 0.6;
 				this.clientStateArgs = {}; // Data during one state
 				//this.default_viewport = "width=740px";//this.interface_min_width; //width=device-width, initial-scale=1.0
 				this.setViewPort();
