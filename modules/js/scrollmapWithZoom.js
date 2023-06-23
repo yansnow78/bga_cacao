@@ -144,8 +144,7 @@ define([
             create: function (container_div, scrollable_div, surface_div, onsurface_div, clipped_div=null, animation_div=null, page=null, create_extra=null, bEnlargeReduceButtonsInsideMap=false) {
                 debug("ebg.scrollmapWithZoom create ", bEnlargeReduceButtonsInsideMap);
                 if (typeof gameui.calcScale == "undefined"){
-                    var slideto = new ebg.core.core_patch_slideto();
-                    dojo.safeMixin(gameui, slideto);
+                    dojo.safeMixin(gameui, new ebg.core.core_patch_slideto());
                 }
 
                 this._bEnlargeReduceButtonsInsideMap = bEnlargeReduceButtonsInsideMap;
@@ -345,9 +344,6 @@ define([
                 window.addEventListener( 'pagehide', (e) => {this._onbeforeunload_handler(e);});
                 document.addEventListener( 'visibilitychange', this._onvisibilty_changehandler.bind(this));
                 window.addEventListener( 'load', (e) => {debug("document loaded");});
-                // window.addEventListener("beforeunload", function () {
-                //     document.removeEventListener('visibilitychange', toggleTask);
-                //   });
             },
 
             createCompletely: function (container_div, page=null, create_extra=null, bEnlargeReduceButtonsInsideMap=true) {
@@ -409,9 +405,6 @@ define([
             onResize: function () {
                 if (!this._setupDone) {
                     debug("1st onResize after setup");
-                    // let settings_str = JSON.parse(localStorage.getItem('scrollmaps_settings'));
-                    // if (settnigs_str != null){
-                    //     let settings = settings_str[this._localStorageKey];
                     let settings = JSON.parse(localStorage.getItem(this._localStorageKey));
                     if (settings != null){
                         this.setMapZoom(settings.zoom);
@@ -446,24 +439,15 @@ define([
 
             _saveSettings: function (e){
                 debug("_saveSettings", e);
-                // let settings_str = localStorage.getItem('scrollmaps_settings');
-                // let settings = {};
-                // if (typeof settings_str == null){
-                //     settings = JSON.parse(settings_str);
-                // } 
-                // settings[this._localStorageKey] = {time:Date.now(), zoom:this.zoom, board_x:this.board_x, board_y:this.board_y};
-                // localStorage.setItem('scrollmaps_settings', JSON.stringify(settings));
                 let settings = {time:Date.now(), zoom:this.zoom, board_x:this.board_x, board_y:this.board_y};
                 localStorage.setItem(this._localStorageKey, JSON.stringify(settings));
             },
             _onvisibilty_changehandler: function (e) {
-                if (document.visibilityState === "hidden") {this._onbeforeunload_handler(e);}
+                if (document.visibilityState === "hidden") {this._saveSettings(e);}
             },
 
             _onbeforeunload_handler: function (e) {
-                // navigator.locks.request("scrollmap_settings", async (lock) => {
                 this._saveSettings(e);
-                //   });
             },
 
             _updatePointers: function (event) {
