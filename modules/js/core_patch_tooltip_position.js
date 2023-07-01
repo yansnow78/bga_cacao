@@ -66,6 +66,9 @@ function (dojo, declare, domGeometry, Tooltip) {
         },
 
         _geom_position : function(/*DomNode*/ node, /*Boolean?*/ includeScroll){
+            if (typeof node == "string") {
+                node = document.getElementById(node);
+            }
             const zoom = this._getZoom(node);
             if (zoom != 1) {
                 let position = this._origPosition(node, false);
