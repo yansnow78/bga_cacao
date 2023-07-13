@@ -48,6 +48,10 @@
   margin: 0;
 }
 
+.reset.fa6-arrows-to-circle {
+  font-size: 26px;
+}
+
 /**************************
 * positioning of buttons  *
 ***************************/
@@ -97,7 +101,7 @@
 /**********************************
 * positioning of fontAwesome icon *
 ***********************************/
-.scrollmap_icon.fa {
+.scrollmap_icon.fa, .scrollmap_icon.fa6-solid {
   background-color: rgba(255, 255, 255, 0.5);
   border-radius: 100%;
 }
