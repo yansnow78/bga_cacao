@@ -39,6 +39,7 @@
 				//this.default_viewport = this.interface_min_width; /*"width=740px" +  */
 				this.onScreenWidthChange();
 
+				this.jungle_tiles_descriptions = gamedatas.jungle_tiles_descriptions;
 				/*
 					Create scrollmap
 				*/
@@ -110,6 +111,14 @@
 						// Last workers tile placed
 						dojo.addClass(placedTileId, "last");
 					}
+					if (placedTileId.substring(0, 6) != "worker"){
+						try {
+							this.addTooltip(placedTileId, _(this.jungle_tiles_descriptions[tile.tile]), '');
+						} catch (error) {
+							/* empty */
+						}
+					}
+
 				}
 				// this.scrollmap.scrollToCenter();
 
@@ -309,6 +318,8 @@
 				Add a jungle tile on the display zone
 			*/
 			fillJungleDisplay: function (type, card_id, description, cnt_deck_jungles) {
+				if (this.jungle_tiles_descriptions)
+					description = this.jungle_tiles_descriptions[type];
 				var tile_id = "jungle_" + card_id;
 				dojo.place(
 					this.format_block(
@@ -320,7 +331,7 @@
 						}),
 					dojo.body());
 				this.jungles_display.placeInZone(tile_id);
-				this.addTooltip(tile_id, description, '');
+				this.addTooltip(tile_id, _(description), '');
 				dojo.place("<span>" + cnt_deck_jungles + "</span>", 'counter_jungles', "only");
 			},
 
@@ -868,7 +879,10 @@
 				var first_tile_id = notifJungleAdded.args.tile_id;
 				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
 				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
+				var tooltip_label = this.tooltips[ first_tile_id ].label;
 				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div, null, true);
+				this.addTooltip(first_tile_id, 'd', '');
+				this.tooltips[ first_tile_id ].label = tooltip_label;
 				this.jungles_display.removeFromZone(first_tile_id, false, null);
 				var animation_id = this.slideToPos(first_tile_id, {x: first_to_left, y: first_to_top}, this.anim_duration);
 				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
@@ -880,7 +894,10 @@
 						var second_tile_id = notifJungleAdded.args.tile_2_id;
 						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
 						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
+						var tooltip_label = this.tooltips[ second_tile_id ].label;
 						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div, null, true);
+						this.addTooltip(second_tile_id, 'd', '');
+						this.tooltips[ second_tile_id ].label = tooltip_label;
 						this.jungles_display.removeFromZone(second_tile_id, false, null);
 						var anim2 = this.slideToPos(second_tile_id,  {x: second_to_left, y: second_to_top} , this.anim_duration).play();
 						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
@@ -967,6 +984,17 @@
 				this.dialogStats.create('dialogStats');
 				this.dialogStats.setTitle(_("Statistics"));
 				this.dialogStats.setContent(notif.args.html);
+				$('popin_dialogStats_contents').querySelectorAll("th").forEach((node) => {
+					node.innerHTML = _(node.innerHTML);
+				});
+				$('popin_dialogStats_contents').querySelectorAll("td").forEach((node) => {
+					let matches = node.innerHTML.match(/(\d+) days/);
+					if ((matches!=null) && (matches[0]!="")){
+						node.innerHTML = dojo.string.substitute( _("${d} days"), {
+							d: matches[1]
+						} );
+					}
+				});
 				this.dialogStats.show();
 			},
 		});

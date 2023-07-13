@@ -156,6 +156,9 @@ class Cacao extends Table
         // Get information about players
         $sql = "SELECT player_id, IFNULL(player_score,0) gold, player_cacao cacao, player_sun sun, player_water water FROM player";
         $result['players'] = self::getCollectionFromDb( $sql );
+
+		// send material information (for tooltips)
+		$result['jungle_tiles_descriptions'] = array_combine(array_keys($this->jungle_tiles), array_column($this->jungle_tiles, 'description'));
   
         // Gather all information about current game situation (visible by player $current_player_id).
  		$result['board'] = $this->getBoard();
@@ -168,9 +171,6 @@ class Cacao extends Table
 		
 		// Next two jungle tiles
 		$result['next_jungle'] = $this->jungle_deck->getCardsInLocation("display");
-		foreach ($result['next_jungle'] as $id=>$tile) {
-			$result['next_jungle'][$id]['description'] = $this->jungle_tiles[$tile['type']]['description'];
-		}
 		$result['cnt_deck_jungles'] = $this->jungle_deck->countCardInLocation("deck");
 		
 		// Last workers tile placed
@@ -864,7 +864,6 @@ class Cacao extends Table
 						'type' => $next_jungle_tile['type'],
 						'id' => $next_jungle_tile['id'],
 						'cnt_deck_jungles' => $cntTilesInDeck,
-						'description' => $this->jungle_tiles[$next_jungle_tile['type']]['description']
 					) );
 					if (self::getGameStateValue('cnt_jungles_placed') == 2) {
 						// Show a second jungle tile on the display
@@ -877,7 +876,6 @@ class Cacao extends Table
 								'type' => $next_jungle_tile['type'],
 								'id' => $next_jungle_tile['id'],
 								'cnt_deck_jungles' => $cntTilesInDeck,
-								'description' => $this->jungle_tiles[$next_jungle_tile['type']]['description']
 							) );
 						}
 					}
@@ -1097,14 +1095,14 @@ class Cacao extends Table
 		foreach ($newScores as $player_id=>$newScore) {
 			$html .= '<TD align="center">'.$newScore.'<i class="fa fa-lg fa-star"></i></TD>';
 		}
-		$html .= '</TR><TR><TH>'.clienttranslate("Left cacao fruits")." (".clienttranslate("Tie breaker").')</TH>';
+		$html .= '</TR><TR><TH>'.clienttranslate("Left cacao fruits (Tie breaker)").')</TH>';
 		foreach ($playersScores as $player_id=>$scores) {
 			$html .= '<TD align="center">'.$scores['player_cacao'].'</TD>';
 		}
 		// Statistics
 		require ("stats.inc.php");
 		foreach ($stats_type['player'] as $statName => $statValues) {
-			$html .= '<TR><TH>'.clienttranslate($statValues['name']).'</TH>';
+			$html .= '<TR><TH>'.$statValues['name'].'</TH>';
 			foreach ($newScores as $player_id=>$newScore) {
 				$html .= '<TD align="center">'.self::getStat( $statName ,$player_id ).'</TD>';
 			}
@@ -1118,7 +1116,8 @@ class Cacao extends Table
 			$h = floor($seconds / 3600);
 			if ($h > 48) {
 				$days = floor($h / 24);
-				$html .= '<TD align="center">'.$days." ".clienttranslate("days").'</TD>';
+				clienttranslate('${d} days');
+				$html .= '<TD align="center">'.$days." "."days".'</TD>';
 			} else {
 				$m = ($seconds / 60) % 60;
 				$s = $seconds % 60;
