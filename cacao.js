@@ -28,6 +28,7 @@
 
 				this.jungles_display = new ebg.zone();
 				this.scrollmap = new ebg.scrollmapWithZoom(); // Scrollable area
+				// this.scrollmap.zoomingOptions.wheelZoming = ebg.scrollmapWithZoom.wheelZoomingKeys.Alt;
 				this.scrollmap.zoom = 0.6;
 				this.clientStateArgs = {}; // Data during one state
 				//this.default_viewport = "width=740px";//this.interface_min_width; //width=device-width, initial-scale=1.0
@@ -48,21 +49,11 @@
 					dojo.place(dojo.eval("jstpl_map_clipped"), scrollmap.clipped_div);
 					scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
 				};
-				this.scrollmap.createCompletely($('map_container'), this, scrollmapCreateExtra);
-
-				/*
-					Make map draggable, scrollable and zoomable
-				*/
-				this.scrollmap.bEnableZooming = true;
-				this.scrollmap.setupOnScreenArrows(this.tile_size, true);
 				this.scrollmap.minZoom = 0.2;
-				this.scrollmap.maxZoom = 2;
-				this.scrollmap.setupOnScreenZoomButtons(0.2);
-				this.scrollmap.setupOnScreenResetButtons();
-				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
-				this.scrollmap.setupInfoButton();
-				this.scrollmap.adaptHeightAuto = true;
-				// this.rotateTo($('map_container'), 45);
+				this.scrollmap.scrollDelta = this.tile_size;
+				this.scrollmap.bAdaptHeightAuto = true;
+				this.scrollmap.createCompletely($('map_container'), this, scrollmapCreateExtra);
+				
 				/*
 					Setting up player boards
 				*/

@@ -16,6 +16,13 @@ require_once( APP_GAMEMODULE_PATH.'module/table/table.game.php' );
 
 class Cacao extends Table
 {
+	protected $jungle_deck, $jungle_places, $jungle_tiles;
+	protected $workers_deck;
+	protected $worker_tiles, $worker_sides;
+	protected $action_players;
+	protected $players_infos;
+
+
 	function __construct( )
 	{
         parent::__construct();
@@ -85,7 +92,7 @@ class Cacao extends Table
 			$this->workers_deck->shuffle( $workersDeck );
 			$this->workers_deck->pickCards( 3, $workersDeck, $player_id );
 		}
-        $sqlValues = implode( $values, ',' );
+        $sqlValues = implode( ',', $values );
         self::DbQuery( "INSERT INTO player (player_id, player_color, player_canal, player_name, player_avatar) VALUES " . $sqlValues );
         self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
         self::reloadPlayersBasicInfos();

@@ -41,7 +41,7 @@ define([
 						on(node, delegatedEvent(('PointerEvent' in window) ? "pointerenter":"mouseenter"), function (e) {
 							// e.stopPropagation();
 							// console.log(e.type, e.target);
-							t2 = Date.now();
+							var t2 = Date.now();
 							if ((t== null) || ((t2 - t) > 300))
 								self._onHover(this);
 						}),
@@ -51,7 +51,7 @@ define([
 							self._onHover(this);
 						}),
 						/* begin of patch for safari ios */
-						on(node, "touchstart", function (e) { //pointerdown
+						on(node, delegatedEvent("touchstart"), function (e) { //pointerdown
 							e.stopPropagation();
 							if (e.touches.length === 1){
 								t = Date.now();
@@ -62,7 +62,6 @@ define([
 									self.set("state", "DORMANT");
 								};
 								var stopTimerFct = function (e) {
-									var t2 = Date.now();
 									// console.log("stopTimerFct", e.type, e.target);
 									document.removeEventListener("touchcancel", stopTimerFct, true);
 									document.removeEventListener("touchend", stopTimerFct, true);
@@ -80,7 +79,7 @@ define([
 								document.addEventListener("pointerout", stopTimerFct, true); 
 								self._onHover(this);
 							}
-						}),
+						}, true),
 						/* end of patch*/
 						on(node, delegatedEvent("mouseleave"), lang.hitch(self, "_onUnHover")),
 						on(node, delegatedEvent("focusout"), lang.hitch(self, "set", "state", "DORMANT"))
