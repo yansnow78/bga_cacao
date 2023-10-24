@@ -37,7 +37,7 @@
 .jungle,
 .worker {
   background-image: url(img/tiles.png);
-  background-size: 600px 840px;
+  background-size: 500% 700%;
   background-repeat: none;
   display: block;
   width: 120px;
@@ -46,8 +46,7 @@
   border: solid 2px #5A9735;
   border-top-color: #A3D588;
   border-bottom-color: #447C2C;
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
+  background-origin: border-box;
   box-sizing: border-box;
   transition-property: border-color, box-shadow;
   transition-duration: 0.3s;
@@ -88,48 +87,48 @@
 	Jungle tiles (shift -1px because border 2px)
 */
 .tile_plantation_1 {
-  background-position: -1px -1px;
+  background-position: 0% 0%;
 }
 
 .tile_plantation_2 {
-  background-position: -121px -1px;
+  background-position: 25% 0%;
 }
 
 .tile_market_2 {
-  background-position: -1px -121px;
+  background-position: 0% 16.6666666667%;
 }
 
 .tile_market_3 {
-  background-position: -121px -121px;
+  background-position: 25% 16.6666666667%;
 }
 
 .tile_market_4 {
-  background-position: -241px -121px;
+  background-position: 50% 16.6666666667%;
 }
 
 .tile_temples {
-  background-position: -1px -241px;
+  background-position: 0% 33.3333333333%;
 }
 
 .tile_sun {
-  background-position: -121px -241px;
+  background-position: 25% 33.3333333333%;
 }
 
 .tile_source {
-  background-position: -241px -241px;
+  background-position: 50% 33.3333333333%;
 }
 
 .tile_mine_1 {
-  background-position: -361px -241px;
+  background-position: 75% 33.3333333333%;
 }
 
 .tile_mine_2 {
-  background-position: -481px -241px;
+  background-position: 100% 33.3333333333%;
 }
 
 /* Back jungle temples when score is computed */
 .jungle.tile_back {
-  background-position: -480px 0;
+  background-position: tile_background_position(4, 0);
 }
 
 .jungle.tile_back > SPAN {
@@ -146,67 +145,67 @@
 	Worker tiles (shift -1px because border 2px)
 */
 .tile_worker_1111.color_w {
-  background-position: -1px -361px;
+  background-position: 0% 50%;
 }
 
 .tile_worker_2101.color_w {
-  background-position: -121px -361px;
+  background-position: 25% 50%;
 }
 
 .tile_worker_3001.color_w {
-  background-position: -241px -361px;
+  background-position: 50% 50%;
 }
 
 .tile_worker_3100.color_w {
-  background-position: -361px -361px;
+  background-position: 75% 50%;
 }
 
 .tile_worker_1111.color_p {
-  background-position: -1px -481px;
+  background-position: 0% 66.6666666667%;
 }
 
 .tile_worker_2101.color_p {
-  background-position: -121px -481px;
+  background-position: 25% 66.6666666667%;
 }
 
 .tile_worker_3001.color_p {
-  background-position: -241px -481px;
+  background-position: 50% 66.6666666667%;
 }
 
 .tile_worker_3100.color_p {
-  background-position: -361px -481px;
+  background-position: 75% 66.6666666667%;
 }
 
 .tile_worker_1111.color_y {
-  background-position: -1px -601px;
+  background-position: 0% 83.3333333333%;
 }
 
 .tile_worker_2101.color_y {
-  background-position: -121px -601px;
+  background-position: 25% 83.3333333333%;
 }
 
 .tile_worker_3001.color_y {
-  background-position: -241px -601px;
+  background-position: 50% 83.3333333333%;
 }
 
 .tile_worker_3100.color_y {
-  background-position: -361px -601px;
+  background-position: 75% 83.3333333333%;
 }
 
 .tile_worker_1111.color_r {
-  background-position: -1px -721px;
+  background-position: 0% 100%;
 }
 
 .tile_worker_2101.color_r {
-  background-position: -121px -721px;
+  background-position: 25% 100%;
 }
 
 .tile_worker_3001.color_r {
-  background-position: -241px -721px;
+  background-position: 50% 100%;
 }
 
 .tile_worker_3100.color_r {
-  background-position: -361px -721px;
+  background-position: 75% 100%;
 }
 
 /*
@@ -237,7 +236,6 @@
 .hand-tiles .tile,
 .hand-tiles .worker {
   position: relative;
-  background-size: 340px 476px;
   width: 64px;
   height: 64px;
   display: inline-block;
@@ -249,76 +247,12 @@
   z-index: var(--z_index_anim);
 }
 
-.hand-tiles .tile_worker_1111.color_w {
-  background-position: -2px -206px;
-}
-
-.hand-tiles .tile_worker_2101.color_w {
-  background-position: -70px -206px;
-}
-
-.hand-tiles .tile_worker_3001.color_w {
-  background-position: -138px -206px;
-}
-
-.hand-tiles .tile_worker_3100.color_w {
-  background-position: -206px -206px;
-}
-
-.hand-tiles .tile_worker_1111.color_p {
-  background-position: -2px -274px;
-}
-
-.hand-tiles .tile_worker_2101.color_p {
-  background-position: -70px -274px;
-}
-
-.hand-tiles .tile_worker_3001.color_p {
-  background-position: -138px -274px;
-}
-
-.hand-tiles .tile_worker_3100.color_p {
-  background-position: -206px -274px;
-}
-
-.hand-tiles .tile_worker_1111.color_y {
-  background-position: -2px -342px;
-}
-
-.hand-tiles .tile_worker_2101.color_y {
-  background-position: -70px -342px;
-}
-
-.hand-tiles .tile_worker_3001.color_y {
-  background-position: -138px -342px;
-}
-
-.hand-tiles .tile_worker_3100.color_y {
-  background-position: -206px -342px;
-}
-
-.hand-tiles .tile_worker_1111.color_r {
-  background-position: -2px -410px;
-}
-
-.hand-tiles .tile_worker_2101.color_r {
-  background-position: -70px -410px;
-}
-
-.hand-tiles .tile_worker_3001.color_r {
-  background-position: -138px -410px;
-}
-
-.hand-tiles .tile_worker_3100.color_r {
-  background-position: -206px -410px;
-}
-
 .hand-tiles .tile-back {
   display: inline-block;
   width: 30px;
   height: 30px;
   background-image: url(img/tiles.png);
-  background-size: 150px 210px;
+  background-size: 500% 700%;
   border: solid 1px #AAA;
   border-top-color: #EEE;
   border-bottom-color: #555;
@@ -326,19 +260,19 @@
 }
 
 .tile-back.back-w {
-  background-position: -120px -90px;
+  background-position: 100% 50%;
 }
 
 .tile-back.back-p {
-  background-position: -120px -120px;
+  background-position: 100% 66.6666666667%;
 }
 
 .tile-back.back-y {
-  background-position: -120px -150px;
+  background-position: 100% 83.3333333333%;
 }
 
 .tile-back.back-r {
-  background-position: -120px -180px;
+  background-position: 100% 100%;
 }
 
 /* Shadow and rotation */
@@ -566,6 +500,7 @@
   width: 29px;
   height: 29px;
   background-image: url(img/piles.png);
+  background-size: 689.6551724138% 151.5151515152%;
   background-repeat: no-repeat;
   box-sizing: border-box;
   padding-left: 4px;
@@ -580,6 +515,7 @@
 }
 
 #counter_jungles.pile-tiles {
+  background-size: 625% 128.2051282051%;
   background-position: 0 0;
   color: #000;
   width: 32px;
@@ -593,22 +529,22 @@
 }
 
 .player_board_content .pile-tiles.pile-w {
-  background-position: -40px 0;
+  background-position: 23.3918128655% 0;
   color: #000;
 }
 
 .player_board_content .pile-tiles.pile-p {
-  background-position: -80px 0;
+  background-position: 46.783625731% 0;
   color: #FFF;
 }
 
 .player_board_content .pile-tiles.pile-y {
-  background-position: -120px 0;
+  background-position: 70.1754385965% 0;
   color: #000;
 }
 
 .player_board_content .pile-tiles.pile-r {
-  background-position: -160px 0;
+  background-position: 93.567251462% 0;
   color: #FFF;
 }
 
@@ -622,9 +558,15 @@
   background-image: url(img/score.png);
   background-repeat: no-repeat;
   background-position: 0 0;
+  background-size: 625% 408.3333333333%;
   box-sizing: border-box;
   padding-top: 4px;
   text-align: center;
+}
+
+.player_score_value > span {
+  position: relative;
+  top: -2px;
 }
 
 .player-counters {
@@ -638,59 +580,76 @@
 
 .counter-cacao {
   width: 70px;
-  background-position: -80px -49px;
+  background-size: 214.2857142857% 408.3333333333%;
+  background-position: 100% 66.2162162162%;
 }
 
 .counter-cacao > DIV {
   background-image: url(img/score.png);
-  background-position: 0 -49px;
   height: 24px;
 }
 
 .counter-cacao .value-1 {
+  background-size: 1071.4285714286% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
   width: 14px;
 }
 
 .counter-cacao .value-2 {
+  background-size: 535.7142857143% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
   width: 28px;
 }
 
 .counter-cacao .value-3 {
+  background-size: 357.1428571429% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
   width: 42px;
 }
 
 .counter-cacao .value-4 {
+  background-size: 267.8571428571% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
   width: 56px;
 }
 
 .counter-cacao .value-5 {
+  background-size: 214.2857142857% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
   width: 70px;
 }
 
 .counter-sun {
   width: 70px;
-  background-position: -80px -24px;
+  background-size: 214.2857142857% 408.3333333333%;
+  background-position: 100% 32.4324324324%;
 }
 
 .counter-sun > DIV {
   background-image: url(img/score.png);
-  background-position: 0 -24px;
   height: 24px;
 }
 
 .counter-sun .value-1 {
+  background-size: 625% 408.3333333333%;
+  background-position: 0% 32.4324324324%;
   width: 24px;
 }
 
 .counter-sun .value-2 {
+  background-size: 312.5% 408.3333333333%;
+  background-position: 0% 32.4324324324%;
   width: 48px;
 }
 
 .counter-sun .value-3 {
+  background-size: 208.3333333333% 408.3333333333%;
+  background-position: 0% 32.4324324324%;
   width: 72px;
 }
 
 .counter-water > .value {
+  background-size: 100% 888%;
   width: 223px;
   height: 25px;
   background-image: url(img/score_water.png);
@@ -703,35 +662,35 @@
 }
 
 .counter-water .value-1 {
-  background-position: 0 -25px;
+  background-position: 0 12.6903553299%;
 }
 
 .counter-water .value-2 {
-  background-position: 0 -50px;
+  background-position: 0 25.3807106599%;
 }
 
 .counter-water .value-3 {
-  background-position: 0 -75px;
+  background-position: 0 38.0710659898%;
 }
 
 .counter-water .value-4 {
-  background-position: 0 -100px;
+  background-position: 0 50.7614213198%;
 }
 
 .counter-water .value-5 {
-  background-position: 0 -125px;
+  background-position: 0 63.4517766497%;
 }
 
 .counter-water .value-6 {
-  background-position: 0 -150px;
+  background-position: 0 76.1421319797%;
 }
 
 .counter-water .value-7 {
-  background-position: 0 -175px;
+  background-position: 0 88.8324873096%;
 }
 
 .counter-water .value-8 {
-  background-position: 0 -200px;
+  background-position: 0 101.5228426396%;
 }
 
 /*
@@ -746,25 +705,29 @@
 .moving-gold {
   width: 25px;
   height: 25px;
-  background-position: 0 0;
+  background-size: 600% 392%;
+  background-position: 0% 0%;
 }
 
 .moving-cacao {
   width: 15px;
   height: 24px;
-  background-position: 0 -49px;
+  background-size: 1000% 408.3333333333%;
+  background-position: 0% 66.2162162162%;
 }
 
 .moving-sun {
   width: 25px;
   height: 25px;
-  background-position: 0 -25px;
+  background-size: 600% 392%;
+  background-position: 0% 34.2465753425%;
 }
 
 .moving-water {
   width: 25px;
   height: 25px;
-  background-position: -25px 0;
+  background-size: 600% 392%;
+  background-position: 20% 0%;
 }
 
 /*

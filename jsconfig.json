@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+      "module": "amd",
+      "target": "es6"
+    },
+    "files": [
+      ".eslintrc.js",
+      "modules/js/scrollmapWithZoom.js",
+      "cacao.js",
+    ],
+    "exclude": ["node_modules", "**/node_modules/*"]
+
+}

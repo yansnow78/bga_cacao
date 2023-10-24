@@ -12,6 +12,7 @@
  * Cacao stylesheet
  *
  */
+@use "sass:math";
  :root {
 	--z_index_anim : 10;
 }
@@ -37,7 +38,7 @@
 .jungle,
 .worker {
 	background-image:url(img/tiles.png);
-	background-size: 600px 840px;
+	background-size: 500% 700%;
 	background-repeat:none;
 	display: block;
 	width: 120px;
@@ -46,8 +47,9 @@
 	border: solid 2px #5A9735;
 	border-top-color: #A3D588;
 	border-bottom-color: #447C2C;
-	-webkit-box-sizing: border-box;
-  	-moz-box-sizing: border-box;
+	background-origin: border-box;
+	// -webkit-box-sizing: border-box;
+  	// -moz-box-sizing: border-box;
   	box-sizing: border-box;
 	transition-property: border-color, box-shadow;
 	transition-duration: 0.3s;
@@ -78,42 +80,61 @@
 	height: 100%;
 	cursor: pointer;
 }
+
+
+$tiles_sprite_columns : 5;
+$tiles_sprite_lines : 7;
+@function background_size($i, $n) {
+	@return math.div($n, $i) * 100%;
+}
+@function calc_background_pos_from_index($i, $n) {
+	$div: if($n==1,1,$n - 1);
+	@return math.div($i,$div) * 100%;
+}
+@function calc_background_pos($pos, $size, $totalsize) {
+	$div: if($totalsize==$size,1,$totalsize - $size);
+	@return math.div($pos,$div) * 100%;
+}
+@mixin tile_background_position($x:0, $y:0) {
+	background-position: calc_background_pos_from_index($x, 5) calc_background_pos_from_index($y, 7);
+}
+
 /*
 	Jungle tiles (shift -1px because border 2px)
 */
 .tile_plantation_1 {
-	background-position: -1px -1px;
+	@include tile_background_position(0, 0);
 }
 .tile_plantation_2 {
-	background-position: -121px -1px;
+	@include tile_background_position(1,0);
 }
 .tile_market_2 {
-	background-position: -1px -121px;
+	@include tile_background_position(0,1);
 }
 .tile_market_3 {
-	background-position: -121px -121px;
+	@include tile_background_position(1,1);
 }
 .tile_market_4 {
-	background-position: -241px -121px;
+	@include tile_background_position(2,1);
 }
 .tile_temples {
-	background-position: -1px -241px;
+	@include tile_background_position(0,2);
 }
 .tile_sun {
-	background-position: -121px -241px;
+	@include tile_background_position(1,2);
 }
 .tile_source {
-	background-position: -241px -241px;
+	@include tile_background_position(2,2);
 }
 .tile_mine_1 {
-	background-position: -361px -241px;
+	@include tile_background_position(3,2);
 }
 .tile_mine_2 {
-	background-position: -481px -241px;
+	@include tile_background_position(4,2);
 }
 /* Back jungle temples when score is computed */
 .jungle.tile_back {
-	background-position: -480px 0;
+	background-position: tile_background_position(4,0);
 }
 .jungle.tile_back > SPAN {
 	display: block;
@@ -128,52 +149,52 @@
 	Worker tiles (shift -1px because border 2px)
 */
 .tile_worker_1111.color_w {
-	background-position: -1px -361px;
+	@include tile_background_position(0,3);
 }
 .tile_worker_2101.color_w {
-	background-position: -121px -361px;
+	@include tile_background_position(1,3);
 }
 .tile_worker_3001.color_w {
-	background-position: -241px -361px;
+	@include tile_background_position(2,3);
 }
 .tile_worker_3100.color_w {
-	background-position: -361px -361px;
+	@include tile_background_position(3,3);
 }
 .tile_worker_1111.color_p {
-	background-position: -1px -481px;
+	@include tile_background_position(0,4);
 }
 .tile_worker_2101.color_p {
-	background-position: -121px -481px;
+	@include tile_background_position(1,4);
 }
 .tile_worker_3001.color_p {
-	background-position: -241px -481px;
+	@include tile_background_position(2,4);
 }
 .tile_worker_3100.color_p {
-	background-position: -361px -481px;
+	@include tile_background_position(3,4);
 }
 .tile_worker_1111.color_y {
-	background-position: -1px -601px;
+	@include tile_background_position(0,5);
 }
 .tile_worker_2101.color_y {
-	background-position: -121px -601px;
+	@include tile_background_position(1,5);
 }
 .tile_worker_3001.color_y {
-	background-position: -241px -601px;
+	@include tile_background_position(2,5);
 }
 .tile_worker_3100.color_y {
-	background-position: -361px -601px;
+	@include tile_background_position(3,5);
 }
 .tile_worker_1111.color_r {
-	background-position: -1px -721px;
+	@include tile_background_position(0,6);
 }
 .tile_worker_2101.color_r {
-	background-position: -121px -721px;
+	@include tile_background_position(1,6);
 }
 .tile_worker_3001.color_r {
-	background-position: -241px -721px;
+	@include tile_background_position(2,6);
 }
 .tile_worker_3100.color_r {
-	background-position: -361px -721px;
+	@include tile_background_position(3,6);
 }
 /*
 	On the board
@@ -199,7 +220,6 @@
 .hand-tiles .tile,
 .hand-tiles .worker {
 	position: relative;
-	background-size: 340px 476px;
 	width: 64px;
 	height: 64px;
 	display: inline-block;
@@ -209,76 +229,28 @@
 	cursor: pointer;
 	z-index: var(--z_index_anim);
 }
-.hand-tiles .tile_worker_1111.color_w {
-	background-position: -2px -206px;
-}
-.hand-tiles .tile_worker_2101.color_w {
-	background-position: -70px -206px;
-}
-.hand-tiles .tile_worker_3001.color_w {
-	background-position: -138px -206px;
-}
-.hand-tiles .tile_worker_3100.color_w {
-	background-position: -206px -206px;
-}
-.hand-tiles .tile_worker_1111.color_p {
-	background-position: -2px -274px;
-}
-.hand-tiles .tile_worker_2101.color_p {
-	background-position: -70px -274px;
-}
-.hand-tiles .tile_worker_3001.color_p {
-	background-position: -138px -274px;
-}
-.hand-tiles .tile_worker_3100.color_p {
-	background-position: -206px -274px;
-}
-.hand-tiles .tile_worker_1111.color_y {
-	background-position: -2px -342px;
-}
-.hand-tiles .tile_worker_2101.color_y {
-	background-position: -70px -342px;
-}
-.hand-tiles .tile_worker_3001.color_y {
-	background-position: -138px -342px;
-}
-.hand-tiles .tile_worker_3100.color_y {
-	background-position: -206px -342px;
-}
-.hand-tiles .tile_worker_1111.color_r {
-	background-position: -2px -410px;
-}
-.hand-tiles .tile_worker_2101.color_r {
-	background-position: -70px -410px;
-}
-.hand-tiles .tile_worker_3001.color_r {
-	background-position: -138px -410px;
-}
-.hand-tiles .tile_worker_3100.color_r {
-	background-position: -206px -410px;
-}
 .hand-tiles .tile-back {
 	display: inline-block;
 	width: 30px;
 	height: 30px;
 	background-image: url(img/tiles.png);
-	background-size: 150px 210px;
+	background-size: 500% 700%;
 	border: solid 1px #AAA;
 	border-top-color: #EEE;
 	border-bottom-color: #555;
 	border-radius: 3px;
 }
 .tile-back.back-w {
-	background-position: -120px -90px;
+	@include tile_background_position(4,3);
 }
 .tile-back.back-p {
-	background-position: -120px -120px;
+	@include tile_background_position(4,4);
 }
 .tile-back.back-y {
-	background-position: -120px -150px;
+	@include tile_background_position(4,5);
 }
 .tile-back.back-r {
-	background-position: -120px -180px;
+	@include tile_background_position(4,6);
 }
 /* Shadow and rotation */
 .rotation_1 {
@@ -469,6 +441,7 @@
 	width: 29px;
 	height: 29px;
 	background-image: url(img/piles.png);
+	background-size: background_size(29px,200px) background_size(33px,50px);
 	background-repeat: no-repeat;
 	box-sizing: border-box;
 	padding-left: 4px;
@@ -480,36 +453,60 @@
 	width: 15px;
 	height: 15px;
 }
+
+@mixin pile_background_position($x:0) {
+	background-position: calc_background_pos(40px+$x*40px, 29px, 200px) 0;
+}
+
 #counter_jungles.pile-tiles {
+	background-size: background_size(32px,200px) background_size(39px,50px);
 	background-position: 0 0;
 	color: #000;
 	width: 32px;
 	height: 39px;
 }
+
+
+
 .player_board_content .pile-tiles {
 	display: inline-block;
 	width: 29px;
 	height: 33px;
 }
 .player_board_content .pile-tiles.pile-w {
-	background-position: -40px 0;
+	@include pile_background_position(0);
 	color: #000;
 }
 .player_board_content .pile-tiles.pile-p {
-	background-position: -80px 0;
+	@include pile_background_position(1);
 	color: #FFF;
 }
 .player_board_content .pile-tiles.pile-y {
-	background-position: -120px 0;
+	@include pile_background_position(2);
 	color: #000;
 }
 .player_board_content .pile-tiles.pile-r {
-	background-position: -160px 0;
+	@include pile_background_position(3);
 	color: #FFF;
 }
+
+// $score_background_size: 600% 300%;
 /*
 	Player counters
 */
+$score_sprite_w : 150px;
+$score_sprite_h : 98px;
+// $score_background_size: background_size(24px,$score_sprite_w) background_size(24px,$score_sprite_h);
+@function score_background_size($w, $h) {
+	@return background_size($w,$score_sprite_w) background_size($h,$score_sprite_h);
+}
+@function score_background_position($x, $y, $w, $h) {
+	@return calc_background_pos($x, $w, $score_sprite_w) calc_background_pos($y, $h, $score_sprite_h);
+}
+@mixin score_background_props($x, $y, $w, $h) {
+	background-size: score_background_size($w, $h);
+	background-position: calc_background_pos($x, $w, $score_sprite_w) calc_background_pos($y, $h, $score_sprite_h);
+}
 .player_score_value {
 	display: inline-block;
 	height: 24px;
@@ -517,9 +514,14 @@
 	background-image:url(img/score.png);
 	background-repeat:no-repeat;
 	background-position: 0 0;
+	background-size: score_background_size(24px,24px);
 	box-sizing: border-box;
 	padding-top: 4px;
 	text-align:center;
+}
+.player_score_value > span{
+	position: relative;
+	top: -2px
 }
 .player-counters {
 	margin-top: 5px;
@@ -528,81 +530,104 @@
 	display: inline-block;
 	background-image:url(img/score.png);
 }
+
 .counter-cacao {
 	width: 70px;
-	background-position: -80px -49px;
+	background-size: score_background_size(70px,24px);
+	background-position: score_background_position(80px, 49px, 70px,24px);
 }
 .counter-cacao > DIV{
 	background-image:url(img/score.png);
-	background-position: 0 -49px;
 	height: 24px;
 }
+@mixin counter_cacao_background_props($x) {
+	background-size: score_background_size($x*14px,24px);
+	background-position: calc_background_pos(0px, $x*14px, $score_sprite_w) calc_background_pos(49px, 24px, $score_sprite_h);
+}
 .counter-cacao .value-1 {
+	@include counter_cacao_background_props(1);
 	width:14px;
 }
 .counter-cacao .value-2 {
+	@include counter_cacao_background_props(2);
 	width:28px;
 }
 .counter-cacao .value-3 {
+	@include counter_cacao_background_props(3);
 	width:42px;
 }
 .counter-cacao .value-4 {
+	@include counter_cacao_background_props(4);
 	width:56px;
 }
 .counter-cacao .value-5 {
+	@include counter_cacao_background_props(5);
 	width:70px;
 }
 .counter-sun {
 	width: 70px;
-	background-position: -80px -24px;
+	background-size: score_background_size(70px,24px);
+	background-position: score_background_position(80px, 24px, 70px, 24px);
 }
 .counter-sun > DIV {
 	background-image:url(img/score.png);
-	background-position: 0 -24px;
 	height: 24px;
 }
+@mixin counter_sun_background_props($x) {
+	background-size: score_background_size($x*24px,24px);
+	background-position: calc_background_pos(0px, $x*24px, $score_sprite_w) calc_background_pos(24px, 24px, $score_sprite_h);
+}
 .counter-sun .value-1 {
+	@include counter_sun_background_props(1);
 	width:24px;
 }
 .counter-sun .value-2 {
+	@include counter_sun_background_props(2);
 	width:48px;
 }
 .counter-sun .value-3 {
+	@include counter_sun_background_props(3);
 	width:72px;
 }
+$score_water_sprite_w: 223px;
+$score_water_sprite_h: 222px;
 .counter-water > .value {
+	background-size: background_size($score_water_sprite_w,$score_water_sprite_w) background_size(25px,$score_water_sprite_h);
 	width: 223px;
 	height: 25px;
 	background-image: url(img/score_water.png);
 	background-position: 0 0;
 	background-repeat: no-repeat;
 }
+@function score_water_background_position($y) {
+	@return 0 calc_background_pos($y*25px, 25px, $score_water_sprite_h);
+}
 .counter-water .value-0 {
 	background-position: 0 0;
 }
 .counter-water .value-1 {
-	background-position: 0 -25px;
+	background-position: score_water_background_position(1);
 }
 .counter-water .value-2 {
-	background-position: 0 -50px;
+	background-position: score_water_background_position(2);
 }
 .counter-water .value-3 {
-	background-position: 0 -75px;
+	background-position: score_water_background_position(3);
 }
 .counter-water .value-4 {
-	background-position: 0 -100px;
+	background-position: score_water_background_position(4);
 }
 .counter-water .value-5 {
-	background-position: 0 -125px;
+	background-position: score_water_background_position(5);
 }
 .counter-water .value-6 {
-	background-position: 0 -150px;
+	background-position: score_water_background_position(6);
 }
 .counter-water .value-7 {
-	background-position: 0 -175px;
+	background-position: score_water_background_position(7);
 }
 .counter-water .value-8 {
-	background-position: 0 -200px;
+	background-position: score_water_background_position(8);
 }
 /*
 	Moving material
@@ -615,22 +640,24 @@
 .moving-gold {
 	width: 25px;
 	height: 25px;
-	background-position: 0 0;
+	@include score_background_props(0px, 0px, 25px, 25px);
 }
 .moving-cacao {
 	width: 15px;
 	height: 24px;
-	background-position: 0 -49px;
+	@include score_background_props(0px, 49px, 15px, 24px);
 }
 .moving-sun {
 	width: 25px;
 	height: 25px;
-	background-position: 0 -25px;
+	@include score_background_props(0px, 25px, 25px, 25px);
+
 }
 .moving-water {
 	width: 25px;
 	height: 25px;
-	background-position: -25px 0;
+	@include score_background_props(25px, 0px, 25px, 25px);
+
 }
 
 /*

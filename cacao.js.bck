@@ -9,11 +9,7 @@
  *
  * cacao.js
  */
-
-/* global g_archive_mode, ScrollmapWithZoom*/
-var isDebug = window.location.host == 'studio.boardgamearena.com' || window.location.hash.indexOf('debug') > -1;
-var debug = isDebug ? console.info.bind(window.console) : function() {};
-define([
+ define([
 	"dojo", "dojo/_base/declare",
 	'./modules/js/scrollmapWithZoom',
 	//'./modules/js/core_patch_slideto',
@@ -32,7 +28,6 @@ define([
 
 				this.jungles_display = new ebg.zone();
 				this.scrollmap = new ebg.scrollmapWithZoom(); // Scrollable area
-				// this.scrollmap.zoomingOptions.wheelZoming = ebg.scrollmapWithZoom.wheelZoomingKeys.Alt;
 				this.scrollmap.zoom = 0.6;
 				this.clientStateArgs = {}; // Data during one state
 				//this.default_viewport = "width=740px";//this.interface_min_width; //width=device-width, initial-scale=1.0
@@ -44,23 +39,30 @@ define([
 				//this.default_viewport = this.interface_min_width; /*"width=740px" +  */
 				this.onScreenWidthChange();
 
-				this.jungle_tiles_descriptions = gamedatas.jungle_tiles_descriptions;
+				this.jungle_tiles = gamedatas.jungle_tiles;
 				/*
 					Create scrollmap
 				*/
 				const scrollmapCreateExtra = (scrollmap) => {
 					dojo.place(dojo.eval("jstpl_map_onsurface"), scrollmap.onsurface_div);
-					scrollmap.surface_div.insertAdjacentHTML("afterend", dojo.eval("jstpl_map_clipped"));
+					dojo.place(dojo.eval("jstpl_map_clipped"), scrollmap.clipped_div);
+					scrollmap.zoomChangeHandler = this.handleMapZoomChange.bind(this);
 				};
-				this.scrollmap.minZoom = 0.2;
-				this.scrollmap.scrollDelta = this.tile_size;
-				this.scrollmap.bAdaptHeightAuto = true;
-				this.scrollmap.btnsDivOnMap = false;
-				this.scrollmap.btnsDivPositionOutsideMap = ScrollmapWithZoom.btnsDivPositionE.Right/* + ' ' +ScrollmapWithZoom.btnsDivPositionE.Center*/;
-				// this.scrollmap.bIncrHeightBtnIsShort = false;
-				// this.scrollmap.bIncrHeightBtnGroupedWithOthers = false;
 				this.scrollmap.createCompletely($('map_container'), this, scrollmapCreateExtra);
-				
+
+				/*
+					Make map draggable, scrollable and zoomable
+				*/
+				this.scrollmap.bEnableZooming = true;
+				this.scrollmap.setupOnScreenArrows(this.tile_size, true);
+				this.scrollmap.minZoom = 0.2;
+				this.scrollmap.maxZoom = 2;
+				this.scrollmap.setupOnScreenZoomButtons(0.2);
+				this.scrollmap.setupOnScreenResetButtons();
+				this.scrollmap.setupEnlargeReduceButtons(100, true, 300);
+				this.scrollmap.setupInfoButton();
+				this.scrollmap.adaptHeightAuto = true;
+				// this.rotateTo($('map_container'), 45);
 				/*
 					Setting up player boards
 				*/
@@ -111,7 +113,7 @@ define([
 					}
 					if (placedTileId.substring(0, 6) != "worker"){
 						try {
-							this.addTooltip(placedTileId, _(this.jungle_tiles_descriptions[tile.tile]), '');
+							this.addTooltip(placedTileId, _(this.jungle_tiles[tile.tile]['description']), '');
 						} catch (error) {
 							/* empty */
 						}
@@ -134,6 +136,7 @@ define([
 				} else {
 					for (i in gamedatas.next_jungle) {
 						var jungle_tile = gamedatas.next_jungle[i];
+						this.jungle_tiles[tile.tile]['description']
 						this.fillJungleDisplay(jungle_tile.type, jungle_tile.id, jungle_tile.description, gamedatas.cnt_deck_jungles);
 					}
 				}
@@ -151,15 +154,35 @@ define([
 
 			setViewPort: function () {
 				if (typeof document.body.style.zoom === "undefined") { // css zoom not supported
+					this.interface_min_width = 500;
 					if (screen.width < this.interface_min_width) {
 						var viewport = document.getElementsByName("viewport")[0];
 						viewport.setAttribute("content", "width=" + this.interface_min_width + "");
 					}
+					// // viewport.setAttribute("content", "width=740");//+this.interface_min_width+
+					// if (viewport === null) {
+					// 	//$('head').append('<meta name="viewport" content="740"/>');
+					// 	viewport=document.createElement('meta');
+					// 	viewport.id = "vp";
+					// 	viewport.name = "viewport";
+					// 	viewport.setAttribute("content", "width=740");
+					// 	document.getElementsByTagName('head')[0].appendChild(viewport);
+					// 	console.log("add viewport");
+					// } else {
+					// 	viewport.setAttribute("content", "width=740");//+this.interface_min_width+
+					// 	console.log("set viewport");
+					// }
 				}
 			},
 
 			onScreenWidthChange: function () {
 				this.setViewPort();
+				// Remove broken "zoom" property added by BGA framework
+				// this.gameinterface_zoomFactor = 1;
+				// $("page-content").style.removeProperty("zoom");
+				// $("page-content").style.setProperty("transform","scale("+this.gameinterface_zoomFactor+")");
+				// $("page-title").style.removeProperty("zoom");
+				// $("right-side-first-part").style.removeProperty("zoom");
 			},
 
 			///////////////////////////////////////////////////
@@ -218,8 +241,6 @@ define([
 							this.updatePlacesForTiles(args.args.workerPlaces);
 							this.clientStateArgs.placesConnected = null;
 							this.clientStateArgs.place_id = null;
-							this.clientStateArgs.worker_id = null;
-							this.clientStateArgs.jungle_id = null;
 							dojo.query(".current-player-board .hand-tiles").addClass("active");
 							this.addTooltipToClass("place", _("Place where you can put your worker tile."), _("Click on a worker tile in you hand, then click on a space."));
 						}
@@ -240,11 +261,11 @@ define([
 						break;
 					case "playerJungle":
 						if (this.isCurrentPlayerActive()) {
-							this.showJunglePlaces(args.args.junglePlaces);
+							this.clientStateArgs.placesConnected = null;
+							this.updatePlacesForTiles(args.args.junglePlaces);
 							dojo.query("#jungle_display").addClass("active");
 							dojo.query("#jungle_display .jungle").connect("onclick", this, "onJungleTile");
 							this.addTooltipToClass("place", _("Place where you can put a jungle tile."), _("Click on a jungle tile in the display, then click on a space. WARNING : once the tile is placed, you cannot change its place !"));
-
 						}
 						break;
 					case "client_selectJungleLocation":
@@ -284,19 +305,8 @@ define([
 				if (this.isCurrentPlayerActive()) {
 					switch (stateName) {
 						case 'playerJungleActions':
-							this.addActionButton("complete_actions", _("Finish"), "onCompleteActions", null, false, "gray");
+							this.addActionButton("complete_actions", _("Finish"), "onCompleteActions");
 							this.addActionButton("choice_workers", _("Don't activate all workers"), "onNotActivateAllWorkers", null, false, "gray");
-							break;
-						case 'client_confirmJungleLocation':
-							this.addActionButton('buttonConfirm', _('Confirm'), 'onConfirmJunglePlace', null, false, 'blue');
-							//this.addActionButton('buttonCancel', _('Cancel'), 'onCancelJunglePlace', null, false, 'gray');
-							this.addActionButton('buttonRestart', _('Restart turn'), 'onRestart', null, false, 'gray');
-
-							this.stopActionTimer();
-							this.startActionTimer('buttonConfirm', 10, 1);
-							break;
-						case 'client_selectJungleLocation':
-							this.addActionButton('buttonRestart', _('Restart turn'), 'onRestart', null, false, 'gray');
 							break;
 					}
 				}
@@ -309,8 +319,6 @@ define([
 				Add a jungle tile on the display zone
 			*/
 			fillJungleDisplay: function (type, card_id, description, cnt_deck_jungles) {
-				if (this.jungle_tiles_descriptions)
-					description = this.jungle_tiles_descriptions[type];
 				var tile_id = "jungle_" + card_id;
 				dojo.place(
 					this.format_block(
@@ -328,6 +336,7 @@ define([
 
 			/*
 				Center the board on a tile
+				TODO : bad position when zoom out
 			*/
 			centerBoardOnTile: function (x, y) {
 				var axeX = this.tile_size * (toint(x) + 0.5);
@@ -544,107 +553,16 @@ define([
 				}
 			},
 
-			calcPos: function (x, y) {
-				return {x: this.tile_size * x, y: this.tile_size * y};
-			},
-
-			placeTile: function (tile_id, pos) {
-				if ($(tile_id).parentNode != this.scrollmap.scrollable_div)
-					dojo.place( tile_id, this.scrollmap.scrollable_div );
-				dojo.attr(tile_id, 'style', "left: " + pos.x + "px; top: " + pos.y + "px;");
-			},
-
-			showJunglePlaces(junglePlaces){
-				this.clientStateArgs.placesConnected = null;
-				this.updatePlacesForTiles(junglePlaces);
-				dojo.query("#jungle_display").addClass("active");
-				$("jungle_display").querySelectorAll(".jungle").forEach((elt)=>{elt.onclick=this.onJungleTile.bind(this);});
-				this.addTooltipToClass("place", _("Place where you can put a jungle tile."), _("Click on a jungle tile in the display, then click on a space. WARNING : once the tile is placed, you cannot change its place !"));
-			},
-
-			getMoveJungleToPlaceAnim: function (tile_id, pos) {
-				var tooltip_label = this.tooltips[ tile_id ].label;
-				this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
-				this.addTooltip(tile_id, 'd', '');
-				this.tooltips[ tile_id ].label = tooltip_label;
-				this.jungles_display.removeFromZone(tile_id, false, null);
-				return this.slideToPos(tile_id, pos, this.anim_duration);
-			},
-
-			placeBackWorker: function(tile_id_to_switch, onEnd){
-				var hand_tiles = "hand_tiles_" + this.player_id;
-				this.attachToNewParent(tile_id_to_switch, hand_tiles, null, true);
-				dojo.removeClass(tile_id_to_switch, "selected");
-				this.rotateTo(tile_id_to_switch, 0);
-				dojo.destroy("rotate_click");
-				var anim = this.slideToPos(tile_id_to_switch, {x: 0, y: 0}, this.anim_duration);
-				dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
-					dojo.style(tile_id_to_switch, 'top', 'auto');
-					dojo.style(tile_id_to_switch, 'left', 'auto');
-					dojo.style(tile_id_to_switch, 'transform', 'rotate(0deg)');
-					dojo.connect($(tile_id_to_switch), "onclick", this, "onWorkerTile");
-					onEnd();
-				}));
-				anim.play();
-			},
-			
-			isReplay() {
-				return typeof g_replayFrom != 'undefined' || g_archive_mode;
-			},
-
-			isReadOnly() {
-				return this.isSpectator || typeof g_replayFrom != 'undefined' || g_archive_mode;
-			},
-
 			/*
-			* Add a timer on an action button :
-			* params:
-			*  - buttonId : id of the action button
-			*  - time : time before auto click
-			*  - pref : 0 is disabled (auto-click), 1 if normal timer, 2 if no timer and show normal button
+				Scrollmap zoom
 			*/
+			handleMapZoomChange: function (zoom) {
+				// this.setScale('jungle_display', zoom);
+			},
 
-			startActionTimer(buttonId, time, pref, autoclick = false) {
-				var button = $(buttonId);
-				var isReadOnly = this.isReadOnly();
-				debug($(buttonId));
-				if (button == null || isReadOnly || pref == 2) {
-					debug('Ignoring startActionTimer(' + buttonId + ')', 'readOnly=' + isReadOnly, 'prefValue=' + pref);
-					return;
-				}
-		
-				// If confirm disabled, click on button
-				if (pref == 0) {
-				if (autoclick) button.click();
-				return;
-				}
-		
-				this._actionTimerLabel = button.innerHTML;
-				this._actionTimerSeconds = time;
-				this._actionTimerFunction = () => {
-					var button = $(buttonId);
-					if (button == null) {
-						this.stopActionTimer();
-					} else if (this._actionTimerSeconds-- > 1) {
-						button.innerHTML = this._actionTimerLabel + ' (' + this._actionTimerSeconds + ')';
-					} else {
-						debug('Timer ' + buttonId + ' execute');
-						button.click();
-					}
-				};
-				this._actionTimerFunction();
-				this._actionTimerId = window.setInterval(this._actionTimerFunction, 1000);
-				debug('Timer #' + this._actionTimerId + ' ' + buttonId + ' start');
+			setScale: function (elemId, scale) {
+				dojo.style($(elemId), 'transform', 'scale(' + scale + ')');
 			},
-		
-			stopActionTimer() {
-				if (this._actionTimerId != null) {
-				debug('Timer #' + this._actionTimerId + ' stop');
-				window.clearInterval(this._actionTimerId);
-				delete this._actionTimerId;
-				}
-			},
-			
 			///////////////////////////////////////////////////
 			//// Player's action
 
@@ -655,8 +573,7 @@ define([
 				dojo.stopEvent(event);
 				// this.scrollmap.scroll(0, 0, 0);
 				if (!this.checkAction('selectWorker')) return;
-				if (!["playerTurn", "client_selectWorkerLocation", "client_selectWorkerRotate"].includes(this.gamedatas.gamestate.name))
-					return;
+				this.lockInterface('selectWorker');
 				var tile_id = event.currentTarget.id;
 				if (this.clientStateArgs.place_id == null) {
 					// First selection
@@ -683,7 +600,21 @@ define([
 					}));
 					anim.play();
 					// ... and previous tile back in the hand
-					this.placeBackWorker(tile_id_to_switch, ()=> {this.showRotateLink(tile_id);	this.unlockInterface('selectWorker'); });
+					var hand_tiles = "hand_tiles_" + this.player_id;
+					this.attachToNewParent(tile_id_to_switch, hand_tiles, null, true);
+					dojo.removeClass(tile_id_to_switch, "selected");
+					this.rotateTo(tile_id_to_switch, 0);
+					dojo.destroy("rotate_click");
+					var animation_id = this.slideToPos(tile_id_to_switch, {x: 0, y: 0}, this.anim_duration);
+					dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
+						dojo.style(tile_id_to_switch, 'top', 'auto');
+						dojo.style(tile_id_to_switch, 'left', 'auto');
+						dojo.style(tile_id_to_switch, 'transform', 'rotate(0deg)');
+						this.showRotateLink(tile_id);
+						dojo.connect($(tile_id_to_switch), "onclick", this, "onWorkerTile");
+						this.unlockInterface('selectWorker');
+					}));
+					animation_id.play();
 				}
 			},
 
@@ -706,7 +637,7 @@ define([
 						// A worker tile is placed on the board for the first time in this player tour
 						this.setClientState("client_selectWorkerRotate", {
 							description: _('${actplayer} can move and/or rotate his tile'),
-							descriptionmyturn: _('${you} can move (click on another place) and/or rotate (click on it) your tile')+'. '+_('${you} can switch with another tile (click on another tile)'),
+							descriptionmyturn: _('${you} can move (click on another place) and/or rotate (click on it) your tile'),
 						});
 					} else {
 						// A worker tile is moved to another place (connect broken for rotate_click ! (?) )
@@ -759,8 +690,6 @@ define([
 			*/
 			onJungleTile: function (event) {
 				if (!this.checkAction('selectJungle')) return;
-				if (!["playerJungle", "client_selectJungleLocation"].includes(this.gamedatas.gamestate.name))
-					return;
 				var id = event.currentTarget.id;
 				dojo.stopEvent(event);
 				if (this.clientStateArgs.jungle_id != null) {
@@ -779,92 +708,28 @@ define([
 			*/
 			onSelectJunglePlace: function (event) {
 				if (!this.checkAction('placeJungle')) return;
-				this.stopActionTimer();
-				$("jungle_display").querySelectorAll(".jungle").forEach((elt)=>elt.onclick=null);
-				this.clientStateArgs.place_jungle_id = event.currentTarget.id;
+				var place_id = event.currentTarget.id;
 				dojo.stopEvent(event);
 				var tile_id = this.clientStateArgs.jungle_id;
-				var position = this.clientStateArgs.place_jungle_id.substring(6);
+				var position = place_id.substring(6);
 				var coord = position.split("x");
-				var pos = this.calcPos(coord[0], coord[1]);
-				var anim = this.getMoveJungleToPlaceAnim(tile_id, pos);
-				anim.play();
-				this.setClientState("client_confirmJungleLocation");
-				// setTimeout(this.placeTile.bind(this), this.anim_duration + 500, tile_id, pos);
+				this.ajaxcall(
+					"/cacao/cacao/junglePlaced.html",
+					{
+						jungle_id: tile_id,
+						jungle_type: dojo.attr(tile_id, "tile"),
+						card_id: dojo.attr(tile_id, "card-id"),
+						x: coord[0],
+						y: coord[1],
+						cnt_places: dojo.query("#places_container .place").length,
+						lock: true
+					},
+					this,
+					function (result) { },
+					function (result) { }
+				);
 			},
 
-			/*
-				Confirm the place for the jungle tile
-			*/
-			onConfirmJunglePlace: function (event) {
-				if (!this.checkAction('placeJungle')) return;
-				this.stopActionTimer();
-				dojo.stopEvent(event);
-				var jungle_id = this.clientStateArgs.jungle_id;
-				var position = this.clientStateArgs.place_jungle_id.substring(6);
-				var coord = position.split("x");
-				if (this.last_server_state.name == "playerJungle"){
-					this.ajaxcall(
-						"/cacao/cacao/junglePlaced.html",
-						{
-							jungle_id: jungle_id,
-							jungle_type: dojo.attr(jungle_id, "tile"),
-							card_id: dojo.attr(jungle_id, "card-id"),
-							x: coord[0],
-							y: coord[1],
-							cnt_places: dojo.query("#places_container .place").length,
-							lock: true
-						},
-						this,
-						function (result) { },
-						function (result) { }
-					);
-				} else {
-					var worker_id = this.clientStateArgs.worker_id;
-					var worker_rotation = this.clientStateArgs.rotation;
-					var worker_position = this.clientStateArgs.place_id.substring(6);
-					var worker_coord = worker_position.split("x");
-					this.ajaxcall(
-						"/cacao/cacao/workerAndJunglePlaced.html",
-						{
-							worker_id: worker_id,
-							x: worker_coord[0],
-							y: worker_coord[1],
-							rotation: worker_rotation,
-							jungle_id: jungle_id,
-							jungle_type: dojo.attr(jungle_id, "tile"),
-							card_id: dojo.attr(jungle_id, "card-id"),
-							jungle_x: coord[0],
-							jungle_y: coord[1],
-							cnt_places: dojo.query("#places_container .place").length,
-							lock: true
-						},
-						this,
-						function (result) { },
-						function (result) { }
-					);
-				}
-
-			},
-
-			/*
-				Confirm the place for the jungle tile
-			*/
-			onRestart: function (event) {
-				this.stopActionTimer();
-				if (this.last_server_state.name != "playerJungle"){
-					this.placeBackWorker(this.clientStateArgs.worker_id);
-					dojo.removeClass(this.clientStateArgs.worker_id, "selected");
-				}
-				$("jungle_display").querySelectorAll(".jungle").forEach((elt)=>elt.onclick=null);
-				dojo.removeClass("jungle_display", "active");
-				if (this.clientStateArgs.jungle_id){
-					this.jungles_display.placeInZone(this.clientStateArgs.jungle_id);
-					dojo.removeClass(this.clientStateArgs.jungle_id, "selected");
-				}
-				dojo.query("#places_container .place").forEach(dojo.destroy);
-				this.restoreServerGameState();
-			},
 			/*
 				A link on jungle activated tile is clicked : execute the action (occurs) times
 			*/
@@ -918,7 +783,6 @@ define([
 				this.notifqueue.setSynchronous('jungleAdded', 1100);
 				dojo.subscribe('zombieJungle', this, "notif_zombieJungle");
 				dojo.subscribe('displayNewJungle', this, "notif_displayNewJungle");
-				dojo.subscribe('junglePlaces', this, "notif_junglePlaces");
 				dojo.subscribe('getNewWorker', this, "notif_getNewWorker");
 				dojo.subscribe('addWorkerInPlayerHand', this, "notif_addWorkerInPlayerHand");
 				this.notifqueue.setSynchronous('playerTurnWait', 1000);
@@ -942,37 +806,52 @@ define([
 				dojo.query(".place").forEach(dojo.destroy);
 				dojo.query(".hand-tiles").removeClass("active");
 				var tile_id = notif.args.tile_type + "_" + notif.args.card_id;
-				var pos = this.calcPos(notif.args.tile_x , notif.args.tile_y);
+				var to_left = this.tile_size * notif.args.tile_x;
+				var to_top = this.tile_size * notif.args.tile_y;
 				if (notif.args.overbuild == "1") {
-					pos.x -= 2;
-					pos.y -= 2;
+					to_left -= 2;
+					to_top -= 2;
 				}
-				if ((notif.args.player_id != this.player_id) || this.isReplay()){
-					if (notif.args.player_id != this.player_id) {
-						// Show worker tile with movement from the player zone
-						dojo.query("#hand_tiles_" + notif.args.player_id + " .tile-back:last-child").forEach(dojo.destroy);
-						dojo.place(
-							this.format_block(
-								"jstpl_worker",
-								{
-									'type': notif.args.tile_type,
-									'id': tile_id,
-									'card_id': notif.args.card_id,
-									'color': this.getColorClass(notif.args.color),
-									'rotation': notif.args.tile_rotation
-								}
-							),
-							"player_board_" + notif.args.player_id);
-					}
+				if (notif.args.player_id == this.player_id) {
+					// Destroy and recreate the tile in map_scrollable : necessary for the replay
+					dojo.destroy(tile_id);
+					dojo.place(
+						this.format_block(
+							"jstpl_worker_xy",
+							{
+								'type': notif.args.tile_type,
+								'id': tile_id,
+								'card_id': notif.args.card_id,
+								'color': this.getColorClass(notif.args.color),
+								'rotation': notif.args.tile_rotation,
+								'top': to_top,
+								'left': to_left
+							}
+						),
+						this.scrollmap.scrollable_div
+					);
+				} else {
+					// Show worker tile with movement from the player zone
+					dojo.query("#hand_tiles_" + notif.args.player_id + " .tile-back:last-child").forEach(dojo.destroy);
+					dojo.place(
+						this.format_block(
+							"jstpl_worker",
+							{
+								'type': notif.args.tile_type,
+								'id': tile_id,
+								'card_id': notif.args.card_id,
+								'color': this.getColorClass(notif.args.color),
+								'rotation': notif.args.tile_rotation
+							}
+						),
+						"player_board_" + notif.args.player_id);
 					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
-					var anim = this.slideToPos(tile_id, pos, this.anim_duration);
+					var anim = this.slideToPos(tile_id, {x: to_left, y: to_top}, this.anim_duration);
 					dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
 						dojo.place(tile_id, this.scrollmap.scrollable_div);
 					}));
 					anim.play();
-					this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y );
-				} else {
-					this.placeTile(tile_id, pos);
+					// this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y ); TODO
 				}
 				dojo.addClass(tile_id, "last");
 				if (notif.args.overbuild == "1") {
@@ -980,15 +859,6 @@ define([
 				}
 				// Update sun tokens : maybe one is spent to overbuild
 				dojo.place('<div class="value-' + notif.args.sun + '"></div>', "counter_sun_" + notif.args.player_id, "only");
-			},
-
-			notif_junglePlaces: function (notif) {
-				dojo.query(".place").forEach(dojo.destroy);
-				// dojo.query("#places_container .place").forEach(dojo.destroy);
-				this.showJunglePlaces(notif.args.junglePlaces);
-				this.setClientState("client_selectJungleLocation", {
-					descriptionmyturn: _('${you} must fill a jungle space'),
-				});
 			},
 
 			notif_newPlayerScores: function (notif) {
@@ -1002,33 +872,48 @@ define([
 				}
 			},
 
-			notif_jungleAdded: function (notif) {
-				var {tile_id, tile_x, tile_y} = notif.args;
-				const pos = this.calcPos(tile_x, tile_y);
-				var {tile_2_id, tile_2_x= 0, tile_2_y = 0} = notif.args;
-				const pos2 = this.calcPos(tile_2_x, tile_2_y);
-				dojo.removeClass(tile_id, "selected");
+			notif_jungleAdded: function (notifJungleAdded) {
+				dojo.removeClass(notifJungleAdded.args.tile_id, "selected");
 				dojo.removeClass("jungle_display", "active");
-				dojo.query("#places_container .place").forEach(dojo.destroy);
-				if ((notif.args.player_id != this.player_id) || this.isReplay()){
-					const placeTileBind = this.placeTile.bind(this);
-					var anim = this.getMoveJungleToPlaceAnim(tile_id, pos);
-					if (notif.args.tile_2_id != null) 
-						dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
-							var anim2 = this.getMoveJungleToPlaceAnim(tile_2_id, pos2);
-							anim2.play();
-							// Sometimes the tile is misplaced
-							setTimeout(placeTileBind, this.anim_duration + 500, tile_2_id, pos2);
+				var first_tile_id = notifJungleAdded.args.tile_id;
+				var first_to_left = this.tile_size * notifJungleAdded.args.tile_x;
+				var first_to_top = this.tile_size * notifJungleAdded.args.tile_y;
+				var tooltip_label = this.tooltips[ first_tile_id ].label;
+				this.attachToNewParent(first_tile_id, this.scrollmap.animation_div, null, true);
+				this.addTooltip(first_tile_id, 'd', '');
+				this.tooltips[ first_tile_id ].label = tooltip_label;
+				this.jungles_display.removeFromZone(first_tile_id, false, null);
+				var animation_id = this.slideToPos(first_tile_id, {x: first_to_left, y: first_to_top}, this.anim_duration);
+				dojo.connect(animation_id, 'onEnd', dojo.hitch(this, function () {
+					dojo.place(first_tile_id, this.scrollmap.scrollable_div);
+					dojo.removeClass(first_tile_id, "selected");
+					dojo.query("#places_container .place").forEach(dojo.destroy);
+					if (notifJungleAdded.args.tile_2_id != null) {
+						// Second jungle tile automatically placed
+						var second_tile_id = notifJungleAdded.args.tile_2_id;
+						var second_to_left = this.tile_size * notifJungleAdded.args.tile_2_x;
+						var second_to_top = this.tile_size * notifJungleAdded.args.tile_2_y;
+						var tooltip_label = this.tooltips[ second_tile_id ].label;
+						this.attachToNewParent(second_tile_id, this.scrollmap.animation_div, null, true);
+						this.addTooltip(second_tile_id, 'd', '');
+						this.tooltips[ second_tile_id ].label = tooltip_label;
+						this.jungles_display.removeFromZone(second_tile_id, false, null);
+						var anim2 = this.slideToPos(second_tile_id,  {x: second_to_left, y: second_to_top} , this.anim_duration).play();
+						dojo.connect(anim2, 'onEnd', dojo.hitch(this, function () {
+							dojo.place(second_tile_id, this.scrollmap.scrollable_div);
 						}));
-					anim.play();
-					// Sometimes the tile is misplaced
-					setTimeout(placeTileBind, this.anim_duration + 500, tile_id, pos);
-				} else {					
-					this.placeTile(tile_id, pos);
-					if (notif.args.tile_2_id != null) {
-						this.placeTile(tile_2_id, pos2);
+						anim2.play();
+						// Sometimes the tile is misplaced
+						setTimeout(function (second_tile_id, second_to_left, second_to_top) {
+							dojo.attr(second_tile_id, 'style', "left: " + second_to_left + "px; top: " + second_to_top + "px;");
+						}, this.anim_duration + 500, second_tile_id, second_to_left, second_to_top);
 					}
-				}
+				}));
+				animation_id.play();
+				// Sometimes the tile is misplaced
+				setTimeout(function (first_tile_id, first_to_left, first_to_top) {
+					dojo.attr(first_tile_id, 'style', "left: " + first_to_left + "px; top: " + first_to_top + "px;");
+				}, this.anim_duration + 500, first_tile_id, first_to_left, first_to_top);
 			},
 
 			notif_zombieJungle: function (notif) {
