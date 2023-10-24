@@ -613,11 +613,6 @@ class Cacao extends Table
         self::checkAction( 'confirmWorker' );
         $player_id = self::getActivePlayerId();
         $junglePlaces = $this->placesForJungle($this_x,$this_y);
-        if ($junglePlaces != false) {
-            $notifyArgs = array( 'junglePlaces' => $this->placesForJungle($this_x,$this_y));
-            self::notifyPlayer( $player_id, "junglePlaces", '', $notifyArgs);
-            return;
-        }
         // Next state
         if ($junglePlaces != false) {
             /*

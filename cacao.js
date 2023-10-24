@@ -913,9 +913,10 @@ define([
 
 			setupNotifications: function () {
 				dojo.subscribe('workerPlaced', this, "notif_workerPlaced");
+				this.notifqueue.setSynchronous('workerPlaced', this.anim_duration+ 100);
 				dojo.subscribe('newPlayerScores', this, "notif_newPlayerScores");
 				dojo.subscribe('jungleAdded', this, "notif_jungleAdded");
-				this.notifqueue.setSynchronous('jungleAdded', 1100);
+				this.notifqueue.setSynchronous('jungleAdded', 2*this.anim_duration+ 100);
 				dojo.subscribe('zombieJungle', this, "notif_zombieJungle");
 				dojo.subscribe('displayNewJungle', this, "notif_displayNewJungle");
 				dojo.subscribe('junglePlaces', this, "notif_junglePlaces");
@@ -983,6 +984,8 @@ define([
 			},
 
 			notif_junglePlaces: function (notif) {
+				if (this.gamedatas.gamestate.name != "client_selectWorkerRotate") 
+					return;
 				dojo.query(".place").forEach(dojo.destroy);
 				// dojo.query("#places_container .place").forEach(dojo.destroy);
 				this.showJunglePlaces(notif.args.junglePlaces);
@@ -1010,23 +1013,26 @@ define([
 				dojo.removeClass(tile_id, "selected");
 				dojo.removeClass("jungle_display", "active");
 				dojo.query("#places_container .place").forEach(dojo.destroy);
+				const placeTileBind = this.placeTile.bind(this);
+				var anim_tile2 = () => {
+					var anim2 = this.getMoveJungleToPlaceAnim(tile_2_id, pos2);
+					anim2.play();
+					// Sometimes the tile is misplaced
+					setTimeout(placeTileBind,  this.instantaneousMode ? 10 : this.anim_duration + 500, tile_2_id, pos2);
+				};
 				if ((notif.args.player_id != this.player_id) || this.isReplay()){
-					const placeTileBind = this.placeTile.bind(this);
 					var anim = this.getMoveJungleToPlaceAnim(tile_id, pos);
-					if (notif.args.tile_2_id != null) 
+					if (tile_2_id != null) 
 						dojo.connect(anim, 'onEnd', dojo.hitch(this, function () {
-							var anim2 = this.getMoveJungleToPlaceAnim(tile_2_id, pos2);
-							anim2.play();
-							// Sometimes the tile is misplaced
-							setTimeout(placeTileBind, this.anim_duration + 500, tile_2_id, pos2);
+							anim_tile2();
 						}));
 					anim.play();
 					// Sometimes the tile is misplaced
-					setTimeout(placeTileBind, this.anim_duration + 500, tile_id, pos);
+					setTimeout(placeTileBind, this.instantaneousMode ? 10 : this.anim_duration + 500, tile_id, pos);
 				} else {					
 					this.placeTile(tile_id, pos);
 					if (notif.args.tile_2_id != null) {
-						this.placeTile(tile_2_id, pos2);
+						anim_tile2();
 					}
 				}
 			},
