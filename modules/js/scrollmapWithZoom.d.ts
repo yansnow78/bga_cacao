@@ -292,7 +292,7 @@ declare class ScrollmapWithZoom {
     scrolltoAndZoom(x: number, y: number, zoom: number, duration?: number, delay?: number): void;
     scrolltoObjectAndZoom(obj: HTMLElement | string, zoom: number, duration?: number, delay?: number): void;
     scrolltoObject(obj: HTMLElement | string, duration?: number, delay?: number): void;
-    _scrollto(x: number, y: number, duration?: number, delay?: number): void;
+    protected _scrollto(x: number, y: number, duration?: number, delay?: number): void;
     zoomToFitAndScrollToCenter(custom_css_query?: string, duration?: number, delay?: number, x_extra_l?: number, x_extra_r?: number, y_extra_u?: number, y_extra_d?: number, cover_arrows?: boolean): {
         x: number;
         y: number;
@@ -301,6 +301,16 @@ declare class ScrollmapWithZoom {
         x: number;
         y: number;
     };
+    protected _isRectInside(outerRect: DOMRectReadOnly, innerRect: DOMRectReadOnly): boolean;
+    protected _intersect(rect1: DOMRectReadOnly, rect2: DOMRectReadOnly): boolean;
+    protected _adjustToContain(outerRect: DOMRectReadOnly, innerRect: DOMRectReadOnly, margin?: number): {
+        x: number;
+        y: number;
+    };
+    isObjVisible(obj: HTMLElement): boolean;
+    makeObjVisible(obj: HTMLElement, centerOnIt?: boolean): void;
+    isVisible(x: number, y: number, w?: number, h?: number): boolean;
+    makeVisible(x: number, y: number, w?: number, h?: number, centerOnIt?: boolean, exclude_width?: number, exclude_height?: number, pos?: "topleft" | "topright" | "bottomleft" | "bottomright"): void;
     getMapLimits(custom_css_query?: string): {
         min_x: number;
         max_x: number;
@@ -337,7 +347,6 @@ declare class ScrollmapWithZoom {
     protected _onMoveLeft(evt?: Event): void;
     protected _onMoveRight(evt?: Event): void;
     protected _onMoveDown(evt?: Event): void;
-    isVisible(x: number, y: number): boolean;
     enableScrolling(): void;
     disableScrolling(): void;
     setupOnScreenZoomButtons(zoomDelta?: number): void;

@@ -1,16 +1,21 @@
 /*
-ScrollmapWithZoom: Improved version of scrollmap used in multiple bga game
+ScrollmapWithZoom version-x.x.x: Improved version of scrollmap used in multiple bga game
 https://github.com/yansnow78/bga_scrollmap.git
 
 # improvements
 - add zoom capabilities
 - add possibility to adjust pan delta to tile size when clicking on arrows
-- allow zoom with scroll wheel
+- add posbility to move buttons outside of the scrollable area by setting :
+    btnsDivOnMap = false;
+    btnsDivPositionOutsideMap = ScrollmapWithZoom.btnsDivPositionE.Right
+- allow zoom with scroll Wheel
+- allow zoom with keys
 - allow pan/scrool and pinch zoom on smartphone
+- allow pan/scrool with keys
 - make clickable area of buttons a bit bigger on smartphone
 - zooming with buttons doesn't drift the board anymore
 - improve animation between game board and player bards tanks to an animation_div
-- add support to long click on buttons (continuous scroll or zoom or enlarge/reduce until button released)
+- add support to long click on buttons/keys (continuous scroll or zoom or enlarge/reduce until button/keys released)
 - add possibility to select which key need to be pressed when zooming with wheel
 - only allow 2 fingers scrolling by default, one finger is for page scrolling
 - only allow zoom with wheel if alt or ctrl or shift are pressed by default, wheel+no key pressed scroll the page as usual.
@@ -514,8 +519,13 @@ class ScrollmapWithZoom {
             clipped_div = document.createElement('div');
             container_div.insertBefore(clipped_div, animation_div);
         }
-        clipped_div.appendChild(surface_div);
         clipped_div.classList.add("scrollmap_overflow_clipped");
+        Array.from(container_div.children).forEach((child) => {
+            //let child = children[i]; //second console o
+            if (!child.classList.contains("scrollmap_anim") && !child.classList.contains("scrollmap_overflow_clipped"))
+                clipped_div.appendChild(child);
+        });
+        // clipped_div.appendChild(surface_div);
         this.container_div = container_div;
         this.scrollable_div = scrollable_div;
         this.surface_div = surface_div;
@@ -1209,6 +1219,9 @@ class ScrollmapWithZoom {
             }
             if (settings.height_changed != null) {
                 this._bHeightChanged = settings.height_changed;
+                if (this._bHeightChanged) {
+                    this._enableButton(this._btnResetHeight);
+                }
             }
             this.setMapZoom(settings.zoom);
             if (settings.board_x != null && settings.board_y != null) {
@@ -1769,6 +1782,94 @@ class ScrollmapWithZoom {
             y: center.y
         };
     }
+    _isRectInside(outerRect, innerRect) {
+        return !(innerRect.left < outerRect.left ||
+            innerRect.top < outerRect.top ||
+            innerRect.right > outerRect.right ||
+            innerRect.bottom > outerRect.bottom);
+    }
+    _intersect(rect1, rect2) {
+        // Vérifier si rect1 est à gauche de rect2
+        const isLeft = rect1.right < rect2.left;
+        // Vérifier si rect1 est à droite de rect2
+        const isRight = rect1.left > rect2.right;
+        // Vérifier si rect1 est au-dessus de rect2
+        const isAbove = rect1.bottom < rect2.top;
+        // Vérifier si rect1 est en dessous de rect2
+        const isBelow = rect1.top > rect2.bottom;
+        // Si l'une de ces conditions est vraie, les rectangles ne s'intersectent pas
+        return !(isLeft || isRight || isAbove || isBelow);
+    }
+    _adjustToContain(outerRect, innerRect, margin = 40) {
+        let deltaX = 0;
+        let deltaY = 0;
+        if (innerRect.left < outerRect.left) {
+            deltaX = outerRect.left - innerRect.left + margin;
+        } else if (innerRect.right > outerRect.right) {
+            deltaX = outerRect.right - innerRect.right - margin;
+        }
+        if (innerRect.top < outerRect.top) {
+            deltaY = outerRect.top - innerRect.top + margin;
+        } else if (innerRect.bottom > outerRect.bottom) {
+            deltaY = outerRect.bottom - innerRect.bottom - margin;
+        }
+        return { x: deltaX, y: deltaY };
+    }
+    isObjVisible(obj) {
+        return this._isRectInside(this.clipped_div.getBoundingClientRect(), obj.getBoundingClientRect());
+    }
+    makeObjVisible(obj, centerOnIt = true) {
+        let board_rect = this.clipped_div.getBoundingClientRect();
+        let obj_rect = obj.getBoundingClientRect();
+        if (centerOnIt && !this._isRectInside(board_rect, obj_rect)) {
+            this.scrolltoObject(obj);
+        } else {
+            let delta = this._adjustToContain(board_rect, obj_rect);
+            if (delta.x != 0 || delta.y != 0)
+                this.scroll(delta.x, delta.y);
+        }
+    }
+    isVisible(x, y, w = 0, h = 0) {
+        const s = window.getComputedStyle(this.clipped_div);
+        const width = parseFloat(s.width);
+        const height = parseFloat(s.height);
+        const obj_rect = new DOMRect(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom);
+        const board_rect = new DOMRect(-this.board_x - width / 2, -this.board_y - height / 2, width, height);
+        return this._isRectInside(board_rect, obj_rect);
+    }
+    makeVisible(x, y, w = 0, h = 0, centerOnIt = true, exclude_width = 0, exclude_height = 0, pos = "topleft") {
+        const s = window.getComputedStyle(this.clipped_div);
+        const width = parseFloat(s.width);
+        const height = parseFloat(s.height);
+        var obj_rect = new DOMRect(x * this.zoom, y * this.zoom, w * this.zoom, h * this.zoom);
+        var board_rect = new DOMRect(-this.board_x - width / 2, -this.board_y - height / 2, width, height);
+        if (centerOnIt) {
+            if (!this._isRectInside(board_rect, obj_rect))
+                this.scrollto(-x - w / 2, -y - h / 2);
+        } else {
+            let delta = this._adjustToContain(board_rect, obj_rect);
+            if ((exclude_width != 0 || exclude_height != 0)) {
+                const exclude_rect = new DOMRect(board_rect.x, board_rect.y, exclude_width, exclude_height);
+                obj_rect.x += delta.x;
+                obj_rect.y += delta.y;
+                if (this._intersect(exclude_rect, obj_rect)) {
+                    let board_rect1 = new DOMRect(board_rect.x + exclude_width, board_rect.y, board_rect.width - exclude_width, board_rect.height);
+                    let delta1 = this._adjustToContain(board_rect1, obj_rect);
+                    let board_rect2 = new DOMRect(board_rect.x, board_rect.y + exclude_height, board_rect.width, board_rect.height - exclude_height);
+                    let delta2 = this._adjustToContain(board_rect2, obj_rect);
+                    if (Math.hypot(delta.x + delta1.x, delta.y + delta1.y) < Math.hypot(delta.x + delta2.x, delta.y + delta2.y)) {
+                        delta.x += delta1.x;
+                        delta.y += delta1.y;
+                    } else {
+                        delta.x += delta2.x;
+                        delta.y += delta2.y;
+                    }
+                }
+            }
+            if (delta.x != 0 || delta.y != 0)
+                this.scroll(delta.x, delta.y);
+        }
+    }
     getMapLimits(custom_css_query = null) {
         if (custom_css_query)
             this._custom_css_query = custom_css_query;
@@ -2294,19 +2395,6 @@ class ScrollmapWithZoom {
             evt.preventDefault();
         this.scroll(0, -this._scrollDeltaAlignWithZoom);
     }
-    isVisible(x, y) {
-        x = x * this.zoom;
-        y = y * this.zoom;
-        const s = window.getComputedStyle(this.clipped_div);
-        const width = parseFloat(s.width);
-        const height = parseFloat(s.height);
-        if (x >= (-this.board_x - width / 2) && x <= (-this.board_x + width / 2)) {
-            if (y >= (-this.board_y - height / 2) && y < (-this.board_y + height / 2)) {
-                return true;
-            }
-        }
-        return false;
-    }
     ///////////////////////////////////////////////////
     ///// Enable / disable scrolling
     enableScrolling() {
@@ -2473,13 +2561,13 @@ class ScrollmapWithZoom {
             this._adaptHeight(null);
         else
             this.setDisplayHeight(this._defaultHeight);
-        this._hideButton(this._btnResetHeight);
-        this._showButton(this._btnMaximizeHeight);
+        this._disableButton(this._btnResetHeight);
+        this._enableButton(this._btnMaximizeHeight);
     }
     _onMaximizeHeight(evt) {
         this._bMaxHeight = this.changeDisplayHeight(5000);
-        this._hideButton(this._btnMaximizeHeight);
-        this._showButton(this._btnResetHeight);
+        this._disableButton(this._btnMaximizeHeight);
+        this._enableButton(this._btnResetHeight);
     }
     _onIncreaseDisplayHeight(evt) {
         evt.preventDefault();
@@ -2515,6 +2603,10 @@ class ScrollmapWithZoom {
         if (new_height == maxHeight) {
             this._disableButton(this._btnMaximizeHeight);
             this._enableButton(this._btnResetHeight);
+        } else {
+            this._enableButton(this._btnMaximizeHeight);
+        }
+        if (new_height == maxHeight) {
             this._disableButton(this._btnIncreaseHeight);
         } else if (new_height == this.minHeight) {
             this._disableButton(this._btnDecreaseHeight);
