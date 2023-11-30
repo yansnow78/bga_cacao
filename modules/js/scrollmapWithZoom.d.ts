@@ -1,5 +1,6 @@
 declare var isDebug: boolean;
 declare var debug: any;
+declare var error: any;
 declare const define: Function;
 declare const ebg: any;
 declare const $: Function;
@@ -18,6 +19,8 @@ interface Position {
 declare class ScrollmapWithZoom {
     private static count;
     private static instances;
+    private static _form;
+    private static _formDialog;
     /**
      * board properties
      */
@@ -25,6 +28,7 @@ declare class ScrollmapWithZoom {
     board_y: number;
     startPosition: Position;
     container_div: HTMLElement;
+    container_subdiv: HTMLElement;
     scrollable_div: HTMLElement;
     surface_div: HTMLElement;
     onsurface_div: HTMLElement;
@@ -38,7 +42,8 @@ declare class ScrollmapWithZoom {
     minZoom: number;
     defaultZoom: number;
     zoomingOptions: {
-        wheelZoming: number;
+        bWheelZooming: boolean;
+        wheelZooming: number;
         pinchZooming: boolean;
     };
     zoomChangeHandler: Function;
@@ -83,7 +88,7 @@ declare class ScrollmapWithZoom {
     adaptHeightCorr: number;
     get bInfoBtnVisible(): boolean;
     /**
-     * enable/disble long press on buttons
+     * enable/disble keys
      */
     static get bEnableKeys(): boolean;
     static set bEnableKeys(value: boolean);
@@ -115,21 +120,27 @@ declare class ScrollmapWithZoom {
     btnIncreaseHeightClasses: string;
     btnDecreaseHeightClasses: string;
     btnToggleButtonsVisibilityClasses: string;
+    btnSettingsClasses: string;
     btnInfoClasses: string;
     btnsDivClasses: string;
-    protected get btnMoveRightHtml(): string;
-    protected get btnMoveLeftHtml(): string;
-    protected get btnMoveTopHtml(): string;
-    protected get btnMoveDownHtml(): string;
-    protected get btnZoomPlusHtml(): string;
-    protected get btnZoomMinusHtml(): string;
-    protected get btnResetHtml(): string;
-    protected get btnZoomToFitHtml(): string;
-    protected get btnResetHeightHtml(): string;
-    protected get btnMaximizeHeightHtml(): string;
-    protected get btnIncreaseHeightHtml(): string;
-    protected get btnDecreaseHeightHtml(): string;
-    protected get btnToggleButtonsVisibilityHtml(): string;
+    btnMoveRightHtml: string;
+    btnMoveLeftHtml: string;
+    btnMoveTopHtml: string;
+    btnMoveDownHtml: string;
+    btnZoomPlusHtml: string;
+    btnZoomMinusHtml: string;
+    btnResetHtml: string;
+    btnInfoHtml: string;
+    btnZoomToFitHtml: string;
+    btnIncreaseHeightHtml: string;
+    btnDecreaseHeightHtml: string;
+    btnIncreaseHeightShortHtml: string;
+    btnDecreaseHeightShortHtml: string;
+    btnResetHeightHtml: string;
+    btnMaximizeHeightHtml: string;
+    btnToggleButtonsVisibilityHtml: string;
+    btnSettingsHtml: string;
+    btnsDivPositionnable: boolean;
     btnsDivOnMap: boolean;
     btns2DivOnMap: boolean;
     btnsDivPositionOutsideMap: string;
@@ -140,11 +151,21 @@ declare class ScrollmapWithZoom {
     btnsMarginY: string;
     btnsOffsetX: string;
     btnsOffsetY: string;
+    btnsOutsideMapOffsetX: string;
+    btnsOutsideMapOffsetY: string;
     btnsSize: string;
     btnsFontSize: string;
     btnsAroundSize: string;
     longPressScroll: number;
     longPressZoom: number;
+    protected static _optionsChanged: {
+        bWheelZooming?: boolean;
+        wheelZooming?: number;
+        pinchZooming?: boolean;
+        btnsDivOnMap?: boolean;
+        btnsDivPositionOutsideMap?: string;
+        btns_visible?: boolean;
+    };
     protected _cover_arrows: boolean;
     protected _x_extra_l: number;
     protected _x_extra_r: number;
@@ -197,20 +218,7 @@ declare class ScrollmapWithZoom {
     protected _btnDecreaseHeight: HTMLElement;
     protected _btnResetHeight: HTMLElement;
     protected _btnMaximizeHeight: HTMLElement;
-    protected _btnMoveRightHtml: string;
-    protected _btnMoveLeftHtml: string;
-    protected _btnMoveTopHtml: string;
-    protected _btnMoveDownHtml: string;
-    protected _btnZoomPlusHtml: string;
-    protected _btnZoomMinusHtml: string;
-    protected _btnResetHtml: string;
-    protected _btnInfoHtml: string;
-    protected _btnZoomToFitHtml: string;
-    protected _btnIncreaseHeightHtml: string;
-    protected _btnDecreaseHeightHtml: string;
-    protected _btnResetHeightHtml: string;
-    protected _btnMaximizeHeightHtml: string;
-    protected _btnToggleButtonsVisibilityHtml: string;
+    protected _btnToggleButtonsVisiblity: HTMLElement;
     protected _btnZoomPlusNames: string;
     protected _btnZoomMinusNames: string;
     protected _btnResetNames: string;
@@ -220,6 +228,7 @@ declare class ScrollmapWithZoom {
     protected _bEnlargeReduceButtonsInsideMap: boolean;
     protected _buttons_div: HTMLElement;
     protected _buttons_div2: HTMLElement;
+    protected _buttons_divs_wrapper: HTMLElement;
     protected _defaultHeight: number;
     protected _xPrev: number;
     protected _yPrev: number;
@@ -231,6 +240,7 @@ declare class ScrollmapWithZoom {
     protected _passiveEventListener: {};
     protected _notPassiveEventListener: {};
     protected _loadedSettings: boolean;
+    private static _localStorageGameKey;
     protected _localStorageKey: string;
     protected _localStorageOldKey: string;
     protected _scrolled: boolean;
@@ -241,32 +251,25 @@ declare class ScrollmapWithZoom {
     protected _custom_css_query: string;
     protected _isScrolling: number;
     protected _resetMode: ScrollmapWithZoom.ResetMode;
-    protected get _btnIncreaseHeightDefault(): string;
-    protected get _btnDecreaseHeightDefault(): string;
-    protected get _btnIncreaseHeightDefaultShort(): string;
-    protected get _btnDecreaseHeightDefaultShort(): string;
-    protected get _btnResetHeightDefault(): string;
-    protected get _btnMaximizeHeightDefault(): string;
-    protected get _btnMoveLeftDefault(): string;
-    protected get _btnMoveTopDefault(): string;
-    protected get _btnMoveRightDefault(): string;
-    protected get _btnMoveDownDefault(): string;
-    protected get _btnZoomPlusDefault(): string;
-    protected get _btnZoomMinusDefault(): string;
-    protected get _btnResetDefault(): string;
-    protected get _btnZoomToFitDefault(): string;
-    protected get _btnToggleButtonsVisibilityDefault(): string;
-    protected get _btnInfoDefault(): string;
     constructor();
     protected static onShowTooltip(this: typeof dijit.Tooltip): void;
     create(container_div: HTMLElement, scrollable_div: HTMLElement, surface_div: HTMLElement, onsurface_div: HTMLElement, clipped_div?: HTMLElement, animation_div?: HTMLElement, page?: object, create_extra?: Function): void;
     createCompletely(container_div: HTMLElement, page?: object, create_extra?: Function, bEnlargeReduceButtonsInsideMap?: boolean): void;
     protected _init(): void;
+    protected _RepositionButtonsDiv(options?: {
+        btnsDivOnMap?: boolean;
+        btnsDivPositionOutsideMap?: string;
+    }): void;
+    protected _createForm(): void;
+    protected _showForm(): void;
+    protected _submitForm(): boolean;
+    protected _closeForm(): boolean;
     protected _adaptHeight(entries: ResizeObserverEntry[]): void;
     protected _onResize(entries: ResizeObserverEntry[]): void;
     protected _clearOldSettings(): void;
     protected _loadSettings(): boolean;
     protected _saveSettings(): void;
+    protected static _saveGameSettings(): void;
     protected _onvisibilty_changehandler(e: Event): void;
     protected _onbeforeunload_handler(e: Event): void;
     protected _updatePointers(event: PointerEvent | TouchEvent | MouseEvent): any;
@@ -303,14 +306,15 @@ declare class ScrollmapWithZoom {
     };
     protected _isRectInside(outerRect: DOMRectReadOnly, innerRect: DOMRectReadOnly): boolean;
     protected _intersect(rect1: DOMRectReadOnly, rect2: DOMRectReadOnly): boolean;
-    protected _adjustToContain(outerRect: DOMRectReadOnly, innerRect: DOMRectReadOnly, margin?: number): {
+    protected _adjustToContain(outerRect: DOMRect, innerRect: DOMRect, margin?: number): {
         x: number;
         y: number;
     };
     isObjVisible(obj: HTMLElement): boolean;
-    makeObjVisible(obj: HTMLElement, centerOnIt?: boolean): void;
     isVisible(x: number, y: number, w?: number, h?: number): boolean;
-    makeVisible(x: number, y: number, w?: number, h?: number, centerOnIt?: boolean, exclude_width?: number, exclude_height?: number, pos?: "topleft" | "topright" | "bottomleft" | "bottomright"): void;
+    _makeRectVisible(obj_rect: DOMRect, board_rect: DOMRect, centerOnIt?: boolean, excl_width?: number, excl_height?: number, pos?: "topleft" | "topright" | "bottomleft" | "bottomright"): void;
+    makeObjVisible(obj: HTMLElement, centerOnIt?: boolean, excl_width?: number, excl_height?: number, pos?: "topleft" | "topright" | "bottomleft" | "bottomright"): void;
+    makeVisible(x: number, y: number, w?: number, h?: number, centerOnIt?: boolean, excl_width?: number, excl_height?: number, pos?: "topleft" | "topright" | "bottomleft" | "bottomright"): void;
     getMapLimits(custom_css_query?: string): {
         min_x: number;
         max_x: number;
@@ -327,6 +331,8 @@ declare class ScrollmapWithZoom {
     protected _setScale(elemId: HTMLElement, scale: number): void;
     protected _getButton(btnNames: string[] | string, idSuffix?: string): HTMLElement;
     protected _toggleButtonsVisiblity(): void;
+    protected _setButtonsVisiblity(visible: boolean, dispatch?: boolean): void;
+    private static _toggleButtonsVisiblity;
     protected _hideButton($btn: HTMLElement, idSuffix?: string): void;
     protected _showButton($btn: HTMLElement, idSuffix?: string, display?: string): void;
     protected _enableButton($btn: HTMLElement, idSuffix?: string): void;
@@ -357,7 +363,7 @@ declare class ScrollmapWithZoom {
     setupOnScreenResetButtons(resetMode?: ScrollmapWithZoom.ResetMode): void;
     showOnScreenResetButtons(): void;
     hideOnScreenResetButtons(): void;
-    protected onReset(evt: Event): void;
+    protected onReset(): void;
     protected _getEnlargeReduceButtonsProps(bInsideMap: boolean): {
         idSuffix: string;
         display: string;
@@ -374,15 +380,15 @@ declare class ScrollmapWithZoom {
     setDisplayHeight(new_height: number, dispatch?: boolean): boolean;
     static updateHeight(new_height: number, incrHeightGlobalKey: string): void;
     getDisplayHeight(): number;
-    setupInfoButton(bConfigurableInUserPreference?: boolean): string;
+    setupInfoButton(bConfigurableInUserPreference?: boolean): void;
     showInfoButton(): void;
     hideInfoButton(): void;
-    setInfoButtonTooltip(): string;
+    getInfoButtonTooltip(): string;
+    setInfoButtonTooltip(): void;
     getWheelZoomingOptionTranslated(): string;
 }
 declare namespace ScrollmapWithZoom {
     enum wheelZoomingKeys {
-        Disabled = 0,
         Any = 1,
         None = 2,
         AnyOrNone = 3,

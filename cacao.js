@@ -56,7 +56,6 @@ define([
 				this.scrollmap.scrollDelta = this.tile_size;
 				this.scrollmap.bAdaptHeightAuto = true;
 				this.scrollmap.btnsDivOnMap = false;
-				this.scrollmap.btnsDivPositionOutsideMap = ScrollmapWithZoom.btnsDivPositionE.Right/* + ' ' +ScrollmapWithZoom.btnsDivPositionE.Center*/;
 				// this.scrollmap.bIncrHeightBtnIsShort = false;
 				// this.scrollmap.bIncrHeightBtnGroupedWithOthers = false;
 				this.scrollmap.createCompletely($('map_container'), this, scrollmapCreateExtra);
@@ -329,7 +328,7 @@ define([
 			/*
 				Center the board on a tile
 			*/
-			centerBoardOnTile: function (x, y) {
+			makeVisible: function (x, y) {
 				this.scrollmap.makeVisible(this.tile_size * toint(x), this.tile_size * toint(y), this.tile_size, this.tile_size,  false, this.scrollmap.zoom * (this.tile_size + 10), this.scrollmap.zoom * (2 * this.tile_size + 10));
 			},
 
@@ -969,7 +968,7 @@ define([
 						dojo.place(tile_id, this.scrollmap.scrollable_div);
 					}));
 					anim.play();
-					this.centerBoardOnTile( notif.args.tile_x , notif.args.tile_y );
+					this.makeVisible( notif.args.tile_x , notif.args.tile_y );
 				} else {
 					this.placeTile(tile_id, pos);
 					$(tile_id).classList.add("rotation_"+notif.args.tile_rotation);
