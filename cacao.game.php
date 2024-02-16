@@ -1108,7 +1108,7 @@ class Cacao extends Table
         foreach ($newScores as $player_id=>$newScore) {
             $html .= '<TD align="center">'.$newScore.'<i class="fa fa-lg fa-star"></i></TD>';
         }
-        $html .= '</TR><TR><TH>'.clienttranslate("Left cacao fruits (Tie breaker)").')</TH>';
+        $html .= '</TR><TR><TH>'.clienttranslate("Left cacao fruits (Tie breaker)").'</TH>';
         foreach ($playersScores as $player_id=>$scores) {
             $html .= '<TD align="center">'.$scores['player_cacao'].'</TD>';
         }
