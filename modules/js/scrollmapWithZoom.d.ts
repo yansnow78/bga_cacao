@@ -12,6 +12,16 @@ declare const g_gamethemeurl: string;
 declare const gameui: any;
 declare const toint: Function;
 declare const aspect: any;
+type _optionsChangedT = {
+    bWheelZooming?: boolean;
+    wheelZooming?: number;
+    pinchZooming?: boolean;
+    btnsDivOnMap?: boolean;
+    btnsDivPositionOutsideMap?: string;
+    btns_visible?: boolean;
+    bRevertArrowsScroll?: boolean;
+    bOneFingerScrolling?: boolean;
+};
 interface Position {
     x: number;
     y: number;
@@ -60,11 +70,14 @@ declare class ScrollmapWithZoom {
         bOneFingerScrolling: boolean;
     };
     bScrollDeltaAlignWithZoom: boolean;
+    bRestoreScrollPosition: boolean;
     scrollDelta: number;
     scrollingTresh: number;
     defaultPosition: Position;
     centerPositionOffset: Position;
     centerCalcUseAlsoOnsurface: boolean;
+    get bRevertArrowsScroll(): boolean;
+    set bRevertArrowsScroll(value: boolean);
     /**
      * resizing properties
      */
@@ -156,16 +169,10 @@ declare class ScrollmapWithZoom {
     btnsSize: string;
     btnsFontSize: string;
     btnsAroundSize: string;
-    longPressScroll: number;
+    get longPressScroll(): number;
+    set longPressScroll(value: number);
     longPressZoom: number;
-    protected static _optionsChanged: {
-        bWheelZooming?: boolean;
-        wheelZooming?: number;
-        pinchZooming?: boolean;
-        btnsDivOnMap?: boolean;
-        btnsDivPositionOutsideMap?: string;
-        btns_visible?: boolean;
-    };
+    protected static _optionsChanged: _optionsChangedT;
     protected _cover_arrows: boolean;
     protected _x_extra_l: number;
     protected _x_extra_r: number;
@@ -174,6 +181,7 @@ declare class ScrollmapWithZoom {
     protected _prevZoom: number;
     protected _bEnableZooming: boolean;
     protected _scrollDeltaAlignWithZoom: number;
+    protected _longPressScrollAlignWithZoom: number;
     protected _bHeightChanged: boolean;
     protected _bMaxHeight: boolean;
     protected _bAdaptHeightAuto: boolean;
@@ -251,6 +259,9 @@ declare class ScrollmapWithZoom {
     protected _custom_css_query: string;
     protected _isScrolling: number;
     protected _resetMode: ScrollmapWithZoom.ResetMode;
+    protected _bRevertArrowsScroll: boolean;
+    protected _longPressScroll: number;
+    protected _longPressScrollOriented: number;
     constructor();
     protected static onShowTooltip(this: typeof dijit.Tooltip): void;
     create(container_div: HTMLElement, scrollable_div: HTMLElement, surface_div: HTMLElement, onsurface_div: HTMLElement, clipped_div?: HTMLElement, animation_div?: HTMLElement, page?: object, create_extra?: Function): void;
@@ -270,7 +281,7 @@ declare class ScrollmapWithZoom {
     protected _loadSettings(): boolean;
     protected _saveSettings(): void;
     protected static _saveGameSettings(): void;
-    protected _onvisibilty_changehandler(e: Event): void;
+    protected _onvisibility_changehandler(e: Event): void;
     protected _onbeforeunload_handler(e: Event): void;
     protected _updatePointers(event: PointerEvent | TouchEvent | MouseEvent): any;
     protected _removePointers(event: PointerEvent | TouchEvent | MouseEvent): void;
@@ -304,6 +315,7 @@ declare class ScrollmapWithZoom {
         x: number;
         y: number;
     };
+    protected reset(duration?: number): void;
     protected _isRectInside(outerRect: DOMRectReadOnly, innerRect: DOMRectReadOnly): boolean;
     protected _intersect(rect1: DOMRectReadOnly, rect2: DOMRectReadOnly): boolean;
     protected _adjustToContain(outerRect: DOMRect, innerRect: DOMRect, margin?: number): {
