@@ -1,5 +1,5 @@
 /*
-ScrollmapWithZoom 1.30.1: Improved version of scrollmap used in multiple bga game
+ScrollmapWithZoom 1.34.8 : Improved version of scrollmap used in multiple bga game
 https://github.com/yansnow78/bga_scrollmap.git
 
 # improvements
@@ -58,6 +58,18 @@ class ScrollmapWithZoom {
         }
         this._bRevertArrowsScroll = value;
     }
+    /**
+     * resizing properties
+     */
+    set minHeight(value) {
+        this._orig_minHeight = value;
+        this._minHeight = value;
+        if (this.container_div)
+            this._RepositionButtonsDiv();
+    }
+    get minHeight() {
+        return this._orig_minHeight;
+    }
     get bAdaptHeightAuto() {
         return this._bAdaptHeightAuto;
     }
@@ -69,7 +81,8 @@ class ScrollmapWithZoom {
     set adaptHeightCorrDivs(value) {
         this._adaptHeightCorrDivs = value;
         for (let i = 0; i < this.adaptHeightCorrDivs.length; i++) {
-            this._resizeHeadersObserver.observe(this.adaptHeightCorrDivs[i]);
+            if (this._resizeHeadersObserver)
+                this._resizeHeadersObserver.observe(this.adaptHeightCorrDivs[i]);
         }
     }
     get adaptHeightCorrDivs() {
@@ -161,6 +174,7 @@ class ScrollmapWithZoom {
         //     RIGHT_TOP : 10,
         //     RIGHT_BOTTOM: 11,
         //   };
+        this.version = '1.34.8';
         /**
          * board properties
          */
@@ -195,7 +209,8 @@ class ScrollmapWithZoom {
          */
         this.bEnableScrolling = true;
         this.scrollingOptions = {
-            bOneFingerScrolling: false
+            bOneFingerScrolling: false,
+            bShowMoveCursor: true
         };
         this.bScrollDeltaAlignWithZoom = true;
         this.bRestoreScrollPosition = true;
@@ -206,15 +221,13 @@ class ScrollmapWithZoom {
             x: 0,
             y: 0
         };
+        this.centerCssQuery = null;
         this.centerCalcUseAlsoOnsurface = true;
-        /**
-         * resizing properties
-         */
-        this.minHeight = 300;
         this.incrHeightGlobalKey = null;
         this.incrHeightDelta = 100;
         this.bIncrHeightKeepInPos = true;
         this.bAdaptHeightAutoCompensateChatIcon = true;
+        this.bAdaptHeightAutoCompensatePanelsHeight = false;
         this.adaptHeightCorr = 0;
         this.bEnableKeysArrows = true;
         this.bEnableKeysPlusMinus = true;
@@ -288,6 +301,8 @@ class ScrollmapWithZoom {
         this._longPressScrollAlignWithZoom = 0;
         this._bHeightChanged = false;
         this._bMaxHeight = false;
+        this._minHeight = 300;
+        this._orig_minHeight = 300;
         this._bAdaptHeightAuto = false;
         this._adaptHeightCorrDivs = [];
         this._bIncrHeightGlobally = false;
@@ -306,10 +321,10 @@ class ScrollmapWithZoom {
         this._enabledClicks = true;
         this._enableTooltipsAndClick_handler = this._enableTooltipsAndClick.bind(this);
         this._resizeObserver = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(entries => {
-            this._onResize(entries);
+            this._onResize();
         }) : null;
         this._resizeHeadersObserver = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(entries => {
-            this._adaptHeight(entries);
+            this._adaptHeight();
         }) : null;
         this._onpointermove_handler = this._onPointerMove.bind(this);
         this._onpointerup_handler = this._onPointerUp.bind(this);
@@ -337,7 +352,7 @@ class ScrollmapWithZoom {
         this._btnToggleButtonsVisiblity = null;
         this._btnZoomPlusNames = 'zoomplus,zoom_plus,zoomin,zoom_in';
         this._btnZoomMinusNames = 'zoomminus,zoom_minus,zoomout,zoom_out';
-        this._btnResetNames = 'reset,back_to_center,reset_map,map_reset,center';
+        this._btnResetNames = 'reset,back_to_center,reset_map,map_reset,center,movehome';
         this._btnZoomToFitNames = 'zoomtofit,fullscreen';
         this._btnIncreaseHeightNames = "enlargedisplay";
         this._btnDecreaseHeightNames = "reducedisplay,shrinkdisplay";
@@ -361,7 +376,6 @@ class ScrollmapWithZoom {
         this._scrolled = false;
         this._prevDist = -1;
         this._gestureStart = false;
-        this._custom_css_query = null;
         this._isScrolling = 0;
         // protected _longPressAnim: FrameRequestCallback(time: any, anim?: any) => void;
         this._resetMode = ScrollmapWithZoom.ResetMode.Scroll;
@@ -414,8 +428,9 @@ class ScrollmapWithZoom {
         ScrollmapWithZoom.count++;
         ScrollmapWithZoom.instances.set(container_div.id, this);
         ScrollmapWithZoom.bEnableKeys = ScrollmapWithZoom._bEnableKeys;
-        if (typeof gameui.calcScale == "undefined") {
+        if (!ScrollmapWithZoom._core_patched) {
             dojo.safeMixin(gameui, new ebg.core.core_patch_slideto());
+            ScrollmapWithZoom._core_patched = true;
         }
         if (surface_div)
             surface_div.classList.add("scrollmap_surface");
@@ -830,10 +845,10 @@ class ScrollmapWithZoom {
 
                 .scrollmap_overflow_clipped > .scrollmap_btns_flex {
                     --column_cnt : 2;
-                    width: calc(var(--column_cnt) * (var(--icon_size_z) + 2 * var(--icon_around_size_z)));
+                    width: calc(var(--column_cnt) * (var(--icon_size_z) + 2 * var(--icon_around_size_z)) + 1px);
                 }
 
-                .scrollmap_dialog button {
+                .scrollmap_form button {
                     width: fit-content;
                     padding: 5px;
                     border: 1px solid;
@@ -996,17 +1011,21 @@ class ScrollmapWithZoom {
         if (!this._bEnableZooming)
             this.hideOnScreenZoomButtons();
         this.setupOnScreenResetButtons();
-        this.setupEnlargeReduceButtons(this.incrHeightDelta, this.bIncrHeightKeepInPos, this.minHeight, this.bIncrHeightBtnIsShort, this.bIncrHeightBtnGroupedWithOthers);
+        this.setupEnlargeReduceButtons(this.incrHeightDelta, this.bIncrHeightKeepInPos, this._minHeight, this.bIncrHeightBtnIsShort, this.bIncrHeightBtnGroupedWithOthers);
         if (!this._bIncrHeightBtnVisible)
             this.hideEnlargeReduceButtons();
         this._RepositionButtonsDiv();
+        this.setBShowMoveCursor();
         this.bIncrHeightGlobally = this._bIncrHeightGlobally;
         this._defaultHeight = parseFloat(window.getComputedStyle(this.container_div).height);
         this.bEnableZooming = this._bEnableZooming;
         if (this.defaultZoom === null)
             this.defaultZoom = this.zoom;
         this.setMapZoom(this.zoom);
-        this.scrollto(0, 0, 0, 0);
+        if (this.startPosition)
+            this.scrollto(-this.startPosition.x, -this.startPosition.y, 0, 0);
+        else
+            this.scrollToCenter(null, 0, 0);
         if (this._resizeObserver)
             this._resizeObserver.observe(this.container_div);
         if (this._resizeHeadersObserver) {
@@ -1025,7 +1044,7 @@ class ScrollmapWithZoom {
         window.addEventListener('load', (e) => {
             debug("document loaded"); /*this._adaptHeight();*/
         });
-        dojo.connect(gameui, "onGameUiWidthChange", this, dojo.hitch(this, '_adaptHeight'));
+        dojo.connect(gameui, "onScreenWidthChange", this, dojo.hitch(this, '_adaptHeight'));
         dojo.require("dojo.aspect");
         dojo.aspect.after(ScrollmapWithZoom, "updateHeight", (new_height, incrHeightGlobalKey) => {
             if (this.incrHeightGlobalKey == incrHeightGlobalKey)
@@ -1035,6 +1054,7 @@ class ScrollmapWithZoom {
             let warning_arrowkeys = _('press the arrow keys with ctrl key to scroll the board');
             this.container_div.setAttribute("warning_arrowkeys", warning_arrowkeys);
         }
+        debug("ebg.ScrollmapWithZoom create end");
     }
     createCompletely(container_div, page = null, create_extra = null, bEnlargeReduceButtonsInsideMap = true) {
         debug("createCompletely");
@@ -1093,6 +1113,7 @@ class ScrollmapWithZoom {
             this.container_div.style.setProperty('--btns_offset_y', this.btnsOffsetY);
             this._btnToggleButtonsVisiblity.classList.add("scrollmap_icon_always_visible");
             this._btnToggleButtonsVisiblity.classList.remove("scrollmap_btn_nodisplay");
+            this._minHeight = this._orig_minHeight;
         } else {
             classList = this.btnsDivPositionOutsideMap.split(' ');
             for (const posClass of classList) {
@@ -1110,15 +1131,16 @@ class ScrollmapWithZoom {
             this.container_div.style.setProperty('--btns_offset_y', this.btnsOutsideMapOffsetY);
             this._setButtonsVisiblity(true, false);
             this._btnToggleButtonsVisiblity.classList.add("scrollmap_btn_nodisplay");
+            this._minHeight = Math.max(this._orig_minHeight, gameui.getBoundingClientRectIgnoreZoom(this._buttons_divs_wrapper).height + 2);
+            if (this._minHeight > this.getDisplayHeight())
+                this.setDisplayHeight(this._minHeight);
         }
     }
     _createForm() {
         var inputs = null;
         if (!ScrollmapWithZoom._formDialog) {
             var formTmpl = String.raw `
-                <dialog class="scrollmap_dialog">
                     <form class="scrollmap_form">
-                        <button name="close" aria-label="close">X</button>
                         <div>
                             <input type="checkbox" id="wheelZooming" value="true">
                             <label for="wheelZooming">${dojo.string.substitute(_("Zoom with mouse wheel + ${key}"), { key: "<select name='wheelZoomingKey'></select>" })}</label>
@@ -1131,10 +1153,14 @@ class ScrollmapWithZoom {
                             <input type="checkbox" id="bOneFingerScrolling" value="true">
                             <label for="bOneFingerScrolling">${_("One finger scrolling")}</label>
                         </div>
+                        <div>
+                            <input type="checkbox" id="bShowMoveCursor" value="true">
+                            <label for="bShowMoveCursor">${_("Show move cursor")}</label>
+                        </div>
                         ${this.btnsDivPositionnable ? String.raw `
                         <div>
                             <input type="checkbox" id="btnsDivOutsideMap" value="true">
-                            <label for="btnsDivOutsideMap">${dojo.string.substitute(_("Place buttons outside scrollmap on ${position}"), { position: "<select name='btnsDivPositionOutsideMap'></select>" })}</label>
+                            <label for="btnsDivOutsideMap">${dojo.string.substitute(_("Place buttons outside scrollmap on ${position}"), { position: "<select id='btnsDivPositionOutsideMap' name='btnsDivPositionOutsideMap'></select>" })}</label>
                         </div>
                         ` : ''}
                         <div>
@@ -1142,16 +1168,28 @@ class ScrollmapWithZoom {
                             <label for="bRevertArrowsScroll">${_("Revert scroll direction of arrows")}</label>
                         </div>
                         <div>
+                            <input type="checkbox" id="bTakeIntoAccountPanelsHeight" value="true">
+                            <label for="bTakeIntoAccountPanelsHeight">${_("Take into account players panels height")}</label>
+                        </div>
+                        <div>
+                            <input type="checkbox" id="bAutoCompensateChatIcon" value="true">
+                            <label for="bAutoCompensateChatIcon">${_("Take into account chat icon")}</label>
+                        </div>
+                        <div>
                             <button name="close2">${_("Cancel")}</button>
                             <button type="submit" name="confirm">${_("Confirm")}</button>
                         </div>
                     </form>
-                </dialog>
             `;
-            document.body.insertAdjacentHTML("beforeend", formTmpl);
-            ScrollmapWithZoom._formDialog = document.body.lastElementChild;
-            ScrollmapWithZoom._form = ScrollmapWithZoom._formDialog.firstElementChild;
-            //this._form = < HTMLFormElement > this.container_div.lastElementChild;
+            // document.body.insertAdjacentHTML("beforeend", formTmpl);
+            // ScrollmapWithZoom._formDialog = < HTMLDialogElement > document.body.lastElementChild;
+            ScrollmapWithZoom._formDialog = new ebg.popindialog();
+            ScrollmapWithZoom._formDialog.create('scrollmap_dialog');
+            ScrollmapWithZoom._formDialog.setTitle(_("Board preferences"));
+            ScrollmapWithZoom._formDialog.setContent(formTmpl);
+            ScrollmapWithZoom._formDialog.bCloseIsHiding = true;
+            // ScrollmapWithZoom._form = < HTMLFormElement > ScrollmapWithZoom._formDialog.firstElementChild;
+            ScrollmapWithZoom._form = $('popin_' + ScrollmapWithZoom._formDialog.id + '_contents').firstElementChild;
             inputs = ScrollmapWithZoom._form.elements;
             ScrollmapWithZoom._form.onsubmit = () => { return false; };
             var keys = new Map([
@@ -1181,17 +1219,23 @@ class ScrollmapWithZoom {
                     option.text = value;
                     btnsDivPositionsSel.appendChild(option);
                 }
+                btnsDivPositionsSel.onmousedown = (event) => { event.stopPropagation(); };
+                btnsDivPositionsSel.onclick = (event) => { event.stopPropagation(); };
+                inputs.namedItem("btnsDivPositionOutsideMap").onclick = (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                };
             }
         }
         if (!inputs)
             inputs = ScrollmapWithZoom._form.elements;
         inputs.namedItem("confirm").addEventListener("click", this._submitForm.bind(this));
         var closeFctBind = this._closeForm.bind(this);
-        inputs.namedItem("close").addEventListener("click", closeFctBind);
+        // inputs.namedItem("close").addEventListener("click", closeFctBind);
         inputs.namedItem("close2").addEventListener("click", closeFctBind);
     }
     _showForm() {
-        ScrollmapWithZoom._formDialog.showModal();
+        ScrollmapWithZoom._formDialog.show();
         //this._form.style.display = "block";
         // interface HTMLCollectionOf2<T extends Element>  {
         //     readonly length: number;
@@ -1212,11 +1256,21 @@ class ScrollmapWithZoom {
         inputs.namedItem("wheelZoomingKey").value = '' + this.zoomingOptions.wheelZooming;
         inputs.namedItem("pinchZooming").checked = this.zoomingOptions.pinchZooming;
         inputs.namedItem("bOneFingerScrolling").checked = this.scrollingOptions.bOneFingerScrolling;
+        inputs.namedItem("bShowMoveCursor").checked = this.scrollingOptions.bShowMoveCursor;
         if (this.btnsDivPositionnable) {
             inputs.namedItem("btnsDivOutsideMap").checked = !this.btnsDivOnMap;
             inputs.namedItem("btnsDivPositionOutsideMap").value = this.btnsDivPositionOutsideMap;
         }
         inputs.namedItem("bRevertArrowsScroll").checked = this.bRevertArrowsScroll;
+        inputs.namedItem("bTakeIntoAccountPanelsHeight").checked = this.bAdaptHeightAutoCompensatePanelsHeight;
+        inputs.namedItem("bAutoCompensateChatIcon").checked = this.bAdaptHeightAutoCompensateChatIcon;
+        if (dojo.hasClass('ebd-body', 'mobile_version') && this._bAdaptHeightAuto) {
+            inputs.namedItem("bTakeIntoAccountPanelsHeight").parentElement.style.display = "";
+            inputs.namedItem("bAutoCompensateChatIcon").parentElement.style.display = "";
+        } else {
+            inputs.namedItem("bTakeIntoAccountPanelsHeight").parentElement.style.display = "none";
+            inputs.namedItem("bAutoCompensateChatIcon").parentElement.style.display = "none";
+        }
     }
     _submitForm() {
         var inputs = ScrollmapWithZoom._form.elements;
@@ -1240,6 +1294,12 @@ class ScrollmapWithZoom {
             this.scrollingOptions.bOneFingerScrolling = bOneFingerScrolling;
             ScrollmapWithZoom._optionsChanged.bOneFingerScrolling = bOneFingerScrolling;
         }
+        var bShowMoveCursor = inputs.namedItem("bShowMoveCursor").checked;
+        if (this.scrollingOptions.bShowMoveCursor != bShowMoveCursor) {
+            this.scrollingOptions.bShowMoveCursor = bShowMoveCursor;
+            ScrollmapWithZoom._optionsChanged.bShowMoveCursor = bShowMoveCursor;
+            this.setBShowMoveCursor();
+        }
         if (this.btnsDivPositionnable) {
             var btnsDivOnMap = !inputs.namedItem("btnsDivOutsideMap").checked;
             if (this.btnsDivOnMap != btnsDivOnMap) {
@@ -1256,23 +1316,38 @@ class ScrollmapWithZoom {
             this.bRevertArrowsScroll = bRevertArrowsScroll;
             ScrollmapWithZoom._optionsChanged.bRevertArrowsScroll = bRevertArrowsScroll;
         }
+        var addHeightNeeded = false;
+        var bAutoCompensatePanelsHeight = inputs.namedItem("bTakeIntoAccountPanelsHeight").checked;
+        if (this.bAdaptHeightAutoCompensatePanelsHeight != bAutoCompensatePanelsHeight) {
+            this.bAdaptHeightAutoCompensatePanelsHeight = bAutoCompensatePanelsHeight;
+            ScrollmapWithZoom._optionsChanged.bAutoCompensatePanelsHeight = bAutoCompensatePanelsHeight;
+            addHeightNeeded = true;
+        }
+        var bAutoCompensateChatIcon = inputs.namedItem("bAutoCompensateChatIcon").checked;
+        if (this.bAdaptHeightAutoCompensateChatIcon != bAutoCompensateChatIcon) {
+            this.bAdaptHeightAutoCompensateChatIcon = bAutoCompensateChatIcon;
+            ScrollmapWithZoom._optionsChanged.bAutoCompensateChatIcon = bAutoCompensateChatIcon;
+            addHeightNeeded = true;
+        }
+        if (addHeightNeeded)
+            this._adaptHeight();
         if (this == ScrollmapWithZoom.instances.values().next().value)
             ScrollmapWithZoom._saveGameSettings();
-        ScrollmapWithZoom._formDialog.close();
-        //this._form.style.display = "none";
+        // ScrollmapWithZoom._formDialog.close();
+        ScrollmapWithZoom._formDialog.hide();
         return false;
     }
     _closeForm() {
-        ScrollmapWithZoom._formDialog.close();
-        // this._form.style.display = "none";
+        // ScrollmapWithZoom._formDialog.close();
+        ScrollmapWithZoom._formDialog.hide();
         return false;
     }
-    _adaptHeight(entries) {
+    _adaptHeight() {
         window.requestAnimationFrame(() => {
+            this._onResize();
             // your code
             debug("_adaptHeight");
-            var pageZoom = this._getPageZoom();
-            this._titleHeight = $('page-title').getBoundingClientRect().height / pageZoom;
+            this._titleHeight = gameui.getBoundingClientRectIgnoreZoom($('page-title')).height;
             if (!this.bAdaptHeightAuto)
                 return;
             if (this._setupDone)
@@ -1284,11 +1359,22 @@ class ScrollmapWithZoom {
                 return;
             var screen_height = document.documentElement.clientHeight ||
                 document.body.clientHeight || window.innerHeight;
-            var container_pos = dojo.coords('map_container', true);
-            screen_height /= pageZoom;
-            var other_elements_height = this.adaptHeightCorr + container_pos.y;
+            var container_pos = gameui.getBoundingClientRectIncludeZoom(this.container_div);
+            var other_elements_height = this.adaptHeightCorr + container_pos.y + window.scrollY;
+            if (!this.bAdaptHeightAutoCompensatePanelsHeight && dojo.hasClass('ebd-body', 'mobile_version')) {
+                var page_title = $("page-title");
+                var pageTitleCoord = gameui.getBoundingClientRectIncludeZoom(page_title);
+                var pageContentCoord = gameui.getBoundingClientRectIncludeZoom($("page-content"));
+                other_elements_height -= pageContentCoord.y + window.scrollY;
+                other_elements_height += pageTitleCoord.height;
+            }
             for (let i = 0; i < this.adaptHeightCorrDivs.length; i++) {
-                other_elements_height += this.adaptHeightCorrDivs[i].getBoundingClientRect().height;
+                let float = window.getComputedStyle(this.adaptHeightCorrDivs[i]).float;
+                if (float != "left" && float != "right") {
+                    let brect = gameui.getBoundingClientRectIncludeZoom(this.adaptHeightCorrDivs[i]);
+                    if (brect.top + 5 >= container_pos.y + container_pos.height)
+                        other_elements_height += brect.height;
+                }
             }
             // var $log_history_status = $('log_history_status'); 
             // if ($log_history_status)
@@ -1296,19 +1382,27 @@ class ScrollmapWithZoom {
             // var $connect_status = $('connect_status');
             // if ($connect_status)
             //     other_elements_height -= $connect_status.getBoundingClientRect().height / pageZoom;
-            if (this.bAdaptHeightAutoCompensateChatIcon) {
+            if (this.bAdaptHeightAutoCompensateChatIcon && dojo.hasClass('ebd-body', 'mobile_version')) {
                 var $chatwindowavatar = document.querySelector(".chatwindowavatar");
-                if ($chatwindowavatar)
-                    other_elements_height += $chatwindowavatar.getBoundingClientRect().height / pageZoom;
+                // debugger;
+                if ($chatwindowavatar) {
+                    let brect = gameui.getBoundingClientRectIncludeZoom($chatwindowavatar);
+                    if (brect.height > 0) {
+                        let bheight = window.innerHeight - brect.top;
+                        if (bheight < 120)
+                            other_elements_height += bheight;
+                    }
+                }
             }
-            var map_height = screen_height - other_elements_height;
+            var map_height = (screen_height - other_elements_height) / gameui.calcCurrentCSSZoom(this.container_div);
             if (this.getDisplayHeight() != map_height) {
                 this.setDisplayHeight(map_height);
             }
             this._disableButton(this._btnResetHeight);
+            this._RepositionButtonsDiv();
         });
     }
-    _onResize(entries) {
+    _onResize() {
         window.requestAnimationFrame(() => {
             if (!this._setupDone || (this.bAdaptHeightAuto && !this._adaptHeightDone)) {
                 debug(this._setupDone ? "onResize after adaptHeight" : "1st onResize after setup");
@@ -1317,16 +1411,18 @@ class ScrollmapWithZoom {
                 if (!this._loadedSettings) {
                     if (this._resetMode != ScrollmapWithZoom.ResetMode.ScrollAndZoomFit && this._zoomFitCalledDuringSetup)
                         this.zoomToFit();
-                    this.scrollto(0, 0, 0);
+                    if (this.startPosition)
+                        this.scrollto(-this.startPosition.x, -this.startPosition.y, 0, 0);
+                    else
+                        this.scrollto(0, 0, 0, 0);
                 }
-                setTimeout(() => {
-                    var anim = dojo.fadeIn({ node: this.onsurface_div, duration: 1500, delay: 0 });
-                    anim.play();
-                    var anim = dojo.fadeIn({ node: this.scrollable_div, duration: 1500, delay: 0 });
-                    anim.play();
-                    var anim = dojo.fadeIn({ node: this.animation_div, duration: 1500, delay: 0 });
-                    anim.play();
-                }, 500);
+                if (!this._setupDone)
+                    setTimeout(() => {
+                        var animA = dojo.fadeIn({ node: this.onsurface_div, duration: 1500, delay: 0 });
+                        var animB = dojo.fadeIn({ node: this.scrollable_div, duration: 1500, delay: 0 });
+                        var animC = dojo.fadeIn({ node: this.animation_div, duration: 1500, delay: 0 });
+                        dojo.fx.combine([animA, animB, animC]).play();
+                    }, 500);
             } else {
                 this._scrollto(this.board_x, this.board_y, 0, 0);
             }
@@ -1410,6 +1506,10 @@ class ScrollmapWithZoom {
                     this.zoomingOptions.pinchZooming = optionsChanged.pinchZooming;
                 if (optionsChanged.bOneFingerScrolling != undefined)
                     this.scrollingOptions.bOneFingerScrolling = optionsChanged.bOneFingerScrolling;
+                if (optionsChanged.bShowMoveCursor != undefined) {
+                    this.scrollingOptions.bShowMoveCursor = optionsChanged.bShowMoveCursor;
+                    this.setBShowMoveCursor();
+                }
                 if (optionsChanged.btns_visible != null) {
                     this._setButtonsVisiblity(settings.btns_visible);
                 }
@@ -1418,6 +1518,17 @@ class ScrollmapWithZoom {
                 if (optionsChanged.bRevertArrowsScroll != undefined) {
                     this.bRevertArrowsScroll = optionsChanged.bRevertArrowsScroll;
                 }
+                var adaptHeightNeeded = false;
+                if (optionsChanged.bAutoCompensatePanelsHeight != null) {
+                    this.bAdaptHeightAutoCompensatePanelsHeight = optionsChanged.bAutoCompensatePanelsHeight;
+                    adaptHeightNeeded = true;
+                }
+                if (optionsChanged.bAutoCompensateChatIcon != null) {
+                    this.bAdaptHeightAutoCompensateChatIcon = optionsChanged.bAutoCompensateChatIcon;
+                    adaptHeightNeeded = true;
+                }
+                if (adaptHeightNeeded)
+                    this._adaptHeight();
             }
         }
         return scrolled;
@@ -1482,17 +1593,20 @@ class ScrollmapWithZoom {
     }
     _getPageZoom() {
         var pageZoom = 1;
-        try {
-            var pageZoomStr = $("page-content").style.getPropertyValue("zoom");
-            if (pageZoomStr !== "")
-                pageZoom = parseFloat(pageZoomStr);
-        } catch (error) {
-            /* empty */
+        // @ts-ignore
+        if (typeof document.body.style.zoom !== "undefined") {
+            try {
+                var pageZoomStr = window.getComputedStyle($("page-content")).getPropertyValue("zoom");
+                if (pageZoomStr !== "")
+                    pageZoom = parseFloat(pageZoomStr);
+            } catch (error) {
+                /* empty */
+            }
         }
         return pageZoom;
     }
     _getInterfaceFactor() {
-        return screen.width / gameui.interface_min_width;
+        return screen.width / window.innerWidth;
     }
     _getXYCoord(ev, ev2) {
         var clientX = ev.clientX;
@@ -1501,15 +1615,8 @@ class ScrollmapWithZoom {
             clientX = (clientX + ev2.clientX) / 2;
             clientY = (clientY + ev2.clientY) / 2;
         }
-        const pageZoom = this._getPageZoom();
         var x, y;
-        if ((gameui !== null) && (typeof gameui.calcNewLocation === "function")) {
-            [, , x, y] = gameui.calcNewLocation(this.surface_div, null, clientX / pageZoom, clientY / pageZoom, false, true);
-        } else {
-            const containerRect = this.clipped_div.getBoundingClientRect();
-            x = (clientX / pageZoom - containerRect.x - containerRect.width / 2);
-            y = (clientY / pageZoom - containerRect.y - containerRect.height / 2);
-        }
+        [, , x, y] = gameui.calcNewLocation(this.surface_div, null, clientX, clientY, false, true);
         return [x, y];
     }
     _enableInteractions() {
@@ -1542,7 +1649,7 @@ class ScrollmapWithZoom {
                 debugMsg += "click";
             setTimeout(() => {
                 this._enabledClicks = true;
-                this.onsurface_div.removeEventListener('click', this._suppressCLickEvent_handler, this._passiveEventListener);
+                this.surface_div.removeEventListener('click', this._suppressCLickEvent_handler, this._passiveEventListener);
             }, 200);
         }
         if (isDebug && debugMsg != "")
@@ -1825,12 +1932,13 @@ class ScrollmapWithZoom {
             }
         }
         if (!wheelZoom) {
-            clearTimeout(this._isScrolling);
-            if (this.zoomingOptions.bWheelZooming) {
+            if (this.zoomingOptions.bWheelZooming && !this._isScrolling) {
                 // Set a timeout to run after scrolling ends
                 this._isScrolling = setTimeout(() => {
                     this.container_div.classList.remove("scrollmap_warning_scroll");
-                }, 1000);
+                    clearTimeout(this._isScrolling);
+                    // this._isScrolling = 0;
+                }, 3000);
                 this.container_div.classList.add("scrollmap_warning_scroll");
             }
             return;
@@ -1865,8 +1973,8 @@ class ScrollmapWithZoom {
             obj = $(obj);
         if (!obj)
             return;
-        var objPos = obj.getBoundingClientRect();
-        var mapPos = this.scrollable_div.getBoundingClientRect();
+        var objPos = gameui.getBoundingClientRectIgnoreZoom(obj);
+        var mapPos = gameui.getBoundingClientRectIgnoreZoom(this.scrollable_div);
         // Coordinates (pixels left and top relative to map_scrollable_oversurface) of the player's frog
         var objLocation = {
             x: objPos.left + (objPos.width / 2) - mapPos.left,
@@ -1878,6 +1986,8 @@ class ScrollmapWithZoom {
     _scrollto(x, y, duration, delay) {
         if (this._setupDone)
             this._scrolled = true;
+        else
+            this.startPosition = { x: -x / this.zoom, y: -y / this.zoom };
         // debug("scrollto", this.board_x, this.board_y);
         if (duration == null) {
             duration = 350; // Default duration
@@ -1971,6 +2081,8 @@ class ScrollmapWithZoom {
             y_extra_u = 0;
             y_extra_d = 0;
         }
+        if (!custom_css_query)
+            custom_css_query = this.centerCssQuery;
         const center = this.getMapCenter(custom_css_query);
         center.x += (x_extra_r - x_extra_l) / 2;
         center.y += (y_extra_d - y_extra_u) / 2;
@@ -2102,12 +2214,12 @@ class ScrollmapWithZoom {
                 this.scroll(delta.x, delta.y);
         }
     }
-    makeObjVisible(obj, centerOnIt = true, excl_width = 0, excl_height = 0, pos = "topleft") {
-        let board_rect = this.clipped_div.getBoundingClientRect();
-        let obj_rect = obj.getBoundingClientRect();
+    makeObjVisible(obj, centerOnIt = false, excl_width = 0, excl_height = 0, pos = "topleft") {
+        let board_rect = gameui.getBoundingClientRectIgnoreZoom(this.clipped_div);
+        let obj_rect = gameui.getBoundingClientRectIgnoreZoom(obj);
         this._makeRectVisible(obj_rect, board_rect, centerOnIt, excl_width, excl_height, pos);
     }
-    makeVisible(x, y, w = 0, h = 0, centerOnIt = true, excl_width = 0, excl_height = 0, pos = "topleft") {
+    makeVisible(x, y, w = 0, h = 0, centerOnIt = false, excl_width = 0, excl_height = 0, pos = "topleft") {
         const s = window.getComputedStyle(this.clipped_div);
         const width = parseFloat(s.width);
         const height = parseFloat(s.height);
@@ -2116,8 +2228,6 @@ class ScrollmapWithZoom {
         this._makeRectVisible(obj_rect, board_rect, centerOnIt, excl_width, excl_height, pos);
     }
     getMapLimits(custom_css_query = null) {
-        if (custom_css_query)
-            this._custom_css_query = custom_css_query;
         // Get all elements inside and get their max x/y/w/h
         var max_x = null;
         var max_y = null;
@@ -2164,20 +2274,18 @@ class ScrollmapWithZoom {
             min_y = (min_y !== null) ? Math.min(min_y, top) : top;
             debug(node.id, left, top, left + width, top + height);
         }
-        if ((typeof this._custom_css_query != 'undefined') && (this._custom_css_query !== null)) {
-            document.querySelectorAll(this._custom_css_query).forEach((node) => {
-                calcMaxMin(node, this.scrollable_div);
-            });
-        } else {
-            var css_query = ":scope > *";
-            this.scrollable_div.querySelectorAll(css_query).forEach((node) => {
-                calcMaxMin(node, this.scrollable_div);
-            });
-            if (this.centerCalcUseAlsoOnsurface)
-                this.onsurface_div.querySelectorAll(css_query).forEach((node) => {
-                    calcMaxMin(node, this.onsurface_div);
-                });
+        var css_query = ":scope > *";
+        if (custom_css_query) {
+            css_query = custom_css_query;
         }
+        this.scrollable_div.querySelectorAll(css_query).forEach((node) => {
+            calcMaxMin(node, this.scrollable_div);
+        });
+        if (this.centerCalcUseAlsoOnsurface)
+            this.onsurface_div.querySelectorAll(css_query).forEach((node) => {
+                calcMaxMin(node, this.onsurface_div);
+            });
+        debug("getMapLimits", min_x, max_x, min_y, max_y);
         return {
             min_x,
             max_x,
@@ -2338,24 +2446,28 @@ class ScrollmapWithZoom {
         }
     }
     _hideButton($btn, idSuffix = "") {
-        debug("_hideButton", $btn);
-        if ($btn !== null)
+        if ($btn !== null && !$btn.classList.contains("scrollmap_btn_nodisplay")) {
+            debug("_hideButton", $btn);
             $btn.classList.add("scrollmap_btn_nodisplay");
+        }
     }
     _showButton($btn, idSuffix = "", display = 'block') {
-        debug("_showButton", $btn);
-        if ($btn !== null)
+        if ($btn !== null && $btn.classList.contains("scrollmap_btn_nodisplay")) {
+            debug("_showButton", $btn);
             $btn.classList.remove("scrollmap_btn_nodisplay");
+        }
     }
     _enableButton($btn, idSuffix = "") {
-        debug("_enableButton", $btn);
-        if ($btn !== null)
+        if ($btn !== null && $btn.classList.contains("scrollmap_btn_disabled")) {
+            debug("_enableButton", $btn);
             $btn.classList.remove("scrollmap_btn_disabled");
+        }
     }
     _disableButton($btn, idSuffix = "", display = 'block') {
-        debug("_disableButton", $btn);
-        if ($btn !== null)
+        if ($btn !== null && !$btn.classList.contains("scrollmap_btn_disabled")) {
+            debug("_disableButton", $btn);
             $btn.classList.add("scrollmap_btn_disabled");
+        }
     }
     _createButton(button_code) {
         if (this.clipped_div) {
@@ -2533,7 +2645,7 @@ class ScrollmapWithZoom {
     _onKeyUp(e) {
         if (!ScrollmapWithZoom.bEnableKeys || ScrollmapWithZoom.count != 1)
             return;
-        setTimeout(() => { this.container_div.classList.remove("scrollmap_warning_arrowkeys"); }, 2000);
+        setTimeout(() => { this.container_div.classList.remove("scrollmap_warning_arrowkeys"); }, 3000);
         if (!this._keysPressed.get(e.key))
             return;
         console.log("onKeyUp", e.key);
@@ -2786,7 +2898,8 @@ class ScrollmapWithZoom {
         }
         this.incrHeightDelta = incrHeightDelta;
         this.bIncrHeightKeepInPos = bIncrHeightKeepInPos;
-        this.minHeight = minHeight;
+        if (minHeight)
+            this.minHeight = minHeight;
     }
     showEnlargeReduceButtons() {
         var btnsProps = this._getEnlargeReduceButtonsProps(this._bEnlargeReduceButtonsInsideMap);
@@ -2814,7 +2927,7 @@ class ScrollmapWithZoom {
         this._bMaxHeight = false;
         this._bHeightChanged = false;
         if (this.bAdaptHeightAuto)
-            this._adaptHeight(null);
+            this._adaptHeight();
         else
             this.setDisplayHeight(this._defaultHeight);
         this._disableButton(this._btnResetHeight);
@@ -2842,12 +2955,11 @@ class ScrollmapWithZoom {
     setDisplayHeight(new_height, dispatch = true) {
         var screen_height = document.documentElement.clientHeight ||
             document.body.clientHeight || window.innerHeight;
-        var pageZoom = this._getPageZoom();
-        screen_height /= pageZoom;
+        screen_height /= gameui.calcCurrentCSSZoom(this.container_div);
         var current_height = this.getDisplayHeight();
         var maxHeight = screen_height - this._titleHeight;
-        new_height = Math.min(Math.max(new_height, this.minHeight), maxHeight);
-        if (this.bIncrHeightKeepInPos)
+        new_height = Math.min(Math.max(new_height, this._minHeight), maxHeight);
+        if (this.bIncrHeightKeepInPos && this._setupDone)
             this.board_y += (current_height - new_height) / 2;
         this.container_div.style.setProperty("--scrollmap_height", new_height + 'px');
         this.container_div.style.height = 'var(--scrollmap_height)';
@@ -2864,10 +2976,12 @@ class ScrollmapWithZoom {
         this._enableButton(this._btnResetHeight);
         if (new_height == maxHeight) {
             this._disableButton(this._btnIncreaseHeight);
-        } else if (new_height == this.minHeight) {
-            this._disableButton(this._btnDecreaseHeight);
         } else {
             this._enableButton(this._btnIncreaseHeight);
+        }
+        if (new_height == this._minHeight) {
+            this._disableButton(this._btnDecreaseHeight);
+        } else {
             this._enableButton(this._btnDecreaseHeight);
         }
         return (new_height == maxHeight);
@@ -2942,6 +3056,7 @@ class ScrollmapWithZoom {
             info += '<BR>' + _('To fit to content : press the end key with ctrl key');
         if (this._bConfigurableInUserPreference)
             info += _('This is configurable in user preference.');
+        info += '<BR>' + '(v ' + this.version + ')';
         info += '</div>';
         return info;
     }
@@ -2953,6 +3068,9 @@ class ScrollmapWithZoom {
             gameui.tooltips[this._btnInfo.id].bForceOpening = true;
             gameui.tooltips[this._btnInfo.id].getContent = () => { return this.getInfoButtonTooltip(); };
         }
+    }
+    setBShowMoveCursor() {
+        this.surface_div.style.cursor = (this.scrollingOptions.bShowMoveCursor ? "" : "unset");
     }
     getWheelZoomingOptionTranslated() {
         var keystr = "";
@@ -2992,6 +3110,7 @@ class ScrollmapWithZoom {
 }
 ScrollmapWithZoom.count = 0;
 ScrollmapWithZoom.instances = new Map();
+ScrollmapWithZoom._core_patched = false;
 ScrollmapWithZoom._optionsChanged = {};
 ScrollmapWithZoom._bEnableKeys = true;
 (function(ScrollmapWithZoom) {

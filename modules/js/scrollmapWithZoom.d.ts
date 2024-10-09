@@ -21,16 +21,21 @@ type _optionsChangedT = {
     btns_visible?: boolean;
     bRevertArrowsScroll?: boolean;
     bOneFingerScrolling?: boolean;
+    bShowMoveCursor?: boolean;
+    bAutoCompensatePanelsHeight?: boolean;
+    bAutoCompensateChatIcon?: boolean;
 };
 interface Position {
     x: number;
     y: number;
 }
 declare class ScrollmapWithZoom {
+    version: String;
     private static count;
     private static instances;
     private static _form;
     private static _formDialog;
+    private static _core_patched;
     /**
      * board properties
      */
@@ -68,6 +73,7 @@ declare class ScrollmapWithZoom {
     bEnableScrolling: boolean;
     scrollingOptions: {
         bOneFingerScrolling: boolean;
+        bShowMoveCursor: boolean;
     };
     bScrollDeltaAlignWithZoom: boolean;
     bRestoreScrollPosition: boolean;
@@ -75,17 +81,20 @@ declare class ScrollmapWithZoom {
     scrollingTresh: number;
     defaultPosition: Position;
     centerPositionOffset: Position;
+    centerCssQuery: string;
     centerCalcUseAlsoOnsurface: boolean;
     get bRevertArrowsScroll(): boolean;
     set bRevertArrowsScroll(value: boolean);
     /**
      * resizing properties
      */
-    minHeight: number;
+    set minHeight(value: number);
+    get minHeight(): number;
     incrHeightGlobalKey: string;
     incrHeightDelta: number;
     bIncrHeightKeepInPos: boolean;
     bAdaptHeightAutoCompensateChatIcon: boolean;
+    bAdaptHeightAutoCompensatePanelsHeight: boolean;
     get bAdaptHeightAuto(): boolean;
     set bAdaptHeightAuto(value: boolean);
     set adaptHeightCorrDivs(value: HTMLDivElement[]);
@@ -184,6 +193,8 @@ declare class ScrollmapWithZoom {
     protected _longPressScrollAlignWithZoom: number;
     protected _bHeightChanged: boolean;
     protected _bMaxHeight: boolean;
+    protected _minHeight: number;
+    protected _orig_minHeight: number;
     protected _bAdaptHeightAuto: boolean;
     protected _adaptHeightCorrDivs: Array<HTMLDivElement>;
     protected _bIncrHeightGlobally: boolean;
@@ -256,7 +267,6 @@ declare class ScrollmapWithZoom {
     protected _gestureStart: boolean;
     protected _prevTouchesDist: number;
     protected _prevTouchesMiddle: DOMPoint;
-    protected _custom_css_query: string;
     protected _isScrolling: number;
     protected _resetMode: ScrollmapWithZoom.ResetMode;
     protected _bRevertArrowsScroll: boolean;
@@ -275,8 +285,8 @@ declare class ScrollmapWithZoom {
     protected _showForm(): void;
     protected _submitForm(): boolean;
     protected _closeForm(): boolean;
-    protected _adaptHeight(entries: ResizeObserverEntry[]): void;
-    protected _onResize(entries: ResizeObserverEntry[]): void;
+    protected _adaptHeight(): void;
+    protected _onResize(): void;
     protected _clearOldSettings(): void;
     protected _loadSettings(): boolean;
     protected _saveSettings(): void;
@@ -397,6 +407,7 @@ declare class ScrollmapWithZoom {
     hideInfoButton(): void;
     getInfoButtonTooltip(): string;
     setInfoButtonTooltip(): void;
+    setBShowMoveCursor(): void;
     getWheelZoomingOptionTranslated(): string;
 }
 declare namespace ScrollmapWithZoom {

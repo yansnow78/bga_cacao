@@ -16,7 +16,6 @@ var debug = isDebug ? console.info.bind(window.console) : function() {};
 define([
 	"dojo", "dojo/_base/declare",
 	'./modules/js/scrollmapWithZoom',
-	//'./modules/js/core_patch_slideto',
 	//'./modules/js/core_patch_tooltip_show',
 	//'./modules/js/core_patch_tooltip_position',
 	"ebg/core/gamegui",
@@ -24,7 +23,7 @@ define([
 	"ebg/zone",
 ],
 	function (dojo, declare) {
-		return declare("bgagame.cacao", [ebg.core.gamegui/*, ebg.core.core_patch_slideto, ebg.core.core_patch_tooltip_show , ebg.core.core_patch_tooltip_position*/], {
+		return declare("bgagame.cacao", [ebg.core.gamegui/*, ebg.core.core_patch_tooltip_show , ebg.core.core_patch_tooltip_position*/], {
 			constructor: function () {
 				this.anim_duration = 1000;
 				this.tile_size = 120;
@@ -55,6 +54,7 @@ define([
 				this.scrollmap.minZoom = 0.2;
 				this.scrollmap.scrollDelta = this.tile_size;
 				this.scrollmap.bAdaptHeightAuto = true;
+				this.scrollmap.bAdaptHeightAutoCompensatePanelsHeight = true;
 				this.scrollmap.btnsDivOnMap = false;
 				// this.scrollmap.bIncrHeightBtnIsShort = false;
 				// this.scrollmap.bIncrHeightBtnGroupedWithOthers = false;
@@ -152,7 +152,8 @@ define([
 				if (typeof document.body.style.zoom === "undefined") { // css zoom not supported
 					if (screen.width < this.interface_min_width) {
 						var viewport = document.getElementsByName("viewport")[0];
-						viewport.setAttribute("content", "width=" + this.interface_min_width + "");
+						this.default_viewport = "width=" + this.interface_min_width + "px";
+						viewport.setAttribute("content", "width=" + this.interface_min_width + "px");
 					}
 				}
 			},
@@ -961,6 +962,8 @@ define([
 								}
 							),
 							"player_board_" + notif.args.player_id);
+					} else {
+						$(tile_id).classList.add("rotation_"+notif.args.tile_rotation);
 					}
 					this.attachToNewParent(tile_id, this.scrollmap.animation_div, null, true);
 					var anim = this.slideToPos(tile_id, pos, this.anim_duration);
